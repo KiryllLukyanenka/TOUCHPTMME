@@ -1,0 +1,57 @@
+<apex:page showHeader="false" controller="TM_CriteriaValuesController">
+    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery-1.7.2.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/checkbox.js')}" />
+    <script type="text/javascript">
+        function closePopup()
+        {
+            var str = '';
+            $(".singleCheckbox").each(function(){
+                if($(this).attr("checked") == 'checked')
+                {
+                    str += $(this).closest('td').next().html() + ', ';
+                }
+            });
+            if(str.length > 0 && str.indexOf(',') > 0)
+            {
+                str = str.substring(0, str.length - 2);
+            }
+            window.close();
+            if({!JSENCODE(IsEdit)} == '0')
+            {
+                window.opener.populateCriteriaValue(str);
+            }
+            if({!JSENCODE(IsEdit)} == '1')
+            {
+                window.opener.populateCriteriaValueForEdit(str);
+            }
+        }
+    </script>
+    <apex:form >
+        <apex:pageBlock >
+            <apex:pageBlockButtons location="top">
+                <input type="button" class="btn" value="Insert Selected" onclick="closePopup();" />
+            </apex:pageBlockButtons>
+            <apex:pageBlockTable value="{!FieldValues}" var="field">
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputPanel rendered="{!NOT(IsRadioButton)}">
+                                <input type="checkbox" class="allCheckbox" />
+                            </apex:outputPanel>
+                        </apex:facet>
+                        <apex:outputPanel rendered="{!NOT(IsRadioButton)}">
+                            <apex:inputCheckbox styleClass="singleCheckbox" value="{!field.IsChecked}" />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!IsRadioButton}">
+                            <apex:outputPanel rendered="{!field.IsChecked}">
+                                <input type="radio" name="checkfield" class="singleCheckbox" checked="checked"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!NOT(field.IsChecked)}">
+                                <input type="radio" name="checkfield" class="singleCheckbox" />
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:column>
+                    <apex:column headerValue="Values" value="{!field.Field}"/>
+                </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:form> 
+</apex:page>

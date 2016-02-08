@@ -1,0 +1,19 @@
+{
+    "username": "kirill.lukyanenko@codeswat.com.tmme", 
+    "environment": "developer", 
+    "project_name": "kirill.lukyanenko@codeswat.com.tmme", 
+    "workspace": "D:\\MavensmateProjects", 
+    "org_url": "", 
+    "namespace": "TerrMgmt", 
+    "id": "UP8KPWVORGWVJKPHNOX6ESPXS7ZAC2VX", 
+    "metadata_container": "1dci0000000fxZ2AAI", 
+    "subscription": [
+        "ApexClass", 
+        "ApexComponent", 
+        "ApexPage", 
+        "ApexTrigger", 
+        "StaticResource", 
+        "CustomObject", 
+        "Profile"
+    ]
+}

@@ -1,0 +1,2146 @@
+<apex:page id="thePage" sidebar="false" controller="TM_TerritoryManagementController" action="{!checkConfigExisting}" tabStyle="Territory_Management_New__tab">
+    <style type="text/css">
+        a
+        {
+            text-decoration:none;
+            cursor:pointer;
+        }
+        .overlayBackground 
+        {
+            background-color: #000000;
+            border: medium none;
+            display: none;
+            opacity: 0.6;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 100; 
+        }
+        #InlinEditDialog
+        {
+            position: fixed;
+            display: none;
+            visibility: hidden;
+            z-index: 101;
+            top: 40px;
+            left: 400px;
+        }
+        .topRight  
+        {
+            padding-right: 6px;
+            background: transparent url(/img/overlaytopright.gif) no-repeat top right;
+        }
+        .topLeft 
+        {
+            padding: 4px 2px 6px 12px;
+            background: transparent url(/img/overlaytopleft.gif) no-repeat top left;
+        }
+        .dialogClose 
+        { 
+            background-position: 0px 0px;width:16px;
+            height:16px;
+            float: right;
+            cursor: pointer;
+            background-position: top left;
+        }
+        .dialogCloseOn 
+        { 
+            background-image: url(/img/func_icons/util/dialogClose16.gif);
+            background-position: 0px 0px;width:16px;
+            height:16px;
+            float: right;
+            cursor: pointer;
+            background-position: top right;
+        }
+       .middle
+       {
+            background-color: #f5f5f5;
+            border-left: 1px solid #393A3C;
+            border-right: 1px solid #393A3C;
+        }
+        .innerContent {
+            padding: 12px 16px 8px 20px;
+            overflow:auto;
+        }
+        .split 
+        {
+            border-left: 1px solid #919191;
+            border-right: 1px solid #919191;
+            background: transparent url(/img/overlaysplit.gif) repeat-x top;
+            height: 16px;
+            padding-left: 20px;
+        }
+        .buttons 
+        {
+            text-align: center;
+            padding-top: 12px;
+        }
+        .btn
+        {
+            margin: 0 10px 0 0;
+            min-width: 50px;
+        }
+        .bottomRight
+        {
+            height: 4px;
+            padding-right: 4px;
+            background: transparent url(/img/overlaybottomright.gif) no-repeat bottom right;
+        }
+        .bottomLeft
+        {
+            height: 4px;
+            background: transparent url(/img/overlaybottomleft.gif) no-repeat bottom left;
+        }
+        .requiredInput .requiredBlock
+        {
+            background-color: #c00;
+            height: 24px;
+            width: 3px;
+            float: left;
+            margin-right: 2px;
+        }
+        .dateOnlyInput input
+        {
+            width: 121px;
+        }
+        .overlayDialog.inlineEditDialog {
+            position: absolute;
+        }
+        .datePicker
+        {
+            z-index: 500000;
+        }
+        .ui-dialog-titlebar 
+        { 
+            display:none; 
+        }
+        .ui-accordion .ui-accordion-content
+        {
+            padding:0.5em;
+        }
+        .inforTable
+        {
+            margin-top: 0px;
+        }
+        .collapsiblePanel
+        {
+            height:28px;
+            font-weight:bold;
+            line-height:28px;
+        }
+    </style>
+    <apex:stylesheet value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/css/style.css')}"/> 
+    <apex:stylesheet value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/css/tab-style.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/css/main.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/css/jquery-ui.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/css/homepageAddStyle.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/css/popup-style.css')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery-1.7.2.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery.blockUI.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/MultiSelect.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/script.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery-ui.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery.validate.js')}" />
+
+    <link href="{!URLFOR($Resource.DatePickerResource, '/DatePickerResource/css/ui-lightness/jquery-ui-1.10.3.custom.css')}" rel="stylesheet" />
+    <script src="{!URLFOR($Resource.DatePickerResource, '/DatePickerResource/js/jquery-ui-1.10.3.custom.js')}"></script>
+
+    <apex:form id="theForm" styleClass="theForm">
+        <apex:actionFunction action="{!addExistingTerritories}" name="addExistingTerritory" reRender="theForm" oncomplete="showPop();"/>
+        <apex:actionFunction action="{!addTerritories}" name="addPopTerritoriesFun" status="status" reRender="theForm"/>
+        <apex:actionFunction action="{!saveTerritory}" name="saveTerritoryFun" reRender="theForm" oncomplete="$.unblockUI();"/>
+        <apex:actionFunction action="{!createAssignment}" name="createAssignmentFun" reRender="theForm" oncomplete="showPop();"/>
+        <apex:actionFunction action="{!editTerritories}" name="editTerritory" reRender="theForm" oncomplete="$.unblockUI();"/>
+        <apex:actionFunction action="{!saveCreateAssignment}" name="saveCreateAssignmentFun" reRender="theForm"  status="statusAssignment" oncomplete="$.unblockUI();"/>
+        <apex:actionFunction action="{!saveCreateCriteria}" name="saveCreateCriteriaFun" reRender="theForm"  status="statusCriteria" oncomplete="$.unblockUI();"/>
+        <apex:actionFunction action="{!breakAssignment}" name="breakAssignmentFun" reRender="theForm" oncomplete="showPop();"/>
+        <apex:actionFunction action="{!saveBrokenAssignments}" name="saveBreakAssignmentFun" reRender="theForm"  status="breakAssignmentStatus" oncomplete="$.unblockUI();"/>
+        <apex:actionFunction action="{!saveEditAssignment}" name="saveEditAssignment" reRender="theForm" status="statusEditAssignment" oncomplete="$.unblockUI();"/>
+        <apex:actionFunction action="{!editAssignment}" name="editAssignmentFun" reRender="theForm" oncomplete="showPop();"/>
+        <apex:actionFunction action="{!deleteAssignment}" name="delAssignmentFun" reRender="theForm" oncomplete="$.unblockUI();"/>
+        <apex:actionFunction action="{!deleteExceptionAccount}" name="delExceptionAccountFun" reRender="theForm" oncomplete="$.unblockUI();"/>
+        <apex:actionFunction action="{!createExceptionAccount}" name="createExceptionAccountFun" reRender="theForm" oncomplete="showPop();$('.nameKeyWord')[0].focus();"/>
+        <apex:actionFunction action="{!saveDragAssignment}" name="dragAssignment" reRender="theForm" oncomplete="$.unblockUI();"/>
+        <apex:actionFunction action="{!saveChangeBox}" name="saveChangeBoxFun" reRender="theForm" oncomplete="$.unblockUI();alertMsg('CHANGES SAVED! To work with the changes again, select them from the “Saved Territory Changes” picklist.')"/>
+        <apex:actionFunction action="{!calculateTerritoryFields}" name="calculateTerritoryFieldsFun" reRender="theForm"
+        oncomplete="$.unblockUI();" />
+        <apex:actionFunction action="{!submit}" name="submit" reRender="theForm" oncomplete="$.unblockUI();alertMsg('CHANGES SUBMITTED! You will be notified via email when the changes are complete.');" />
+        <apex:actionFunction action="{!removeTerritory}" name="removeTerritory" reRender="theForm" oncomplete="$.unblockUI();"/>
+
+        <apex:actionFunction action="{!checkAsisignmentWithSaveChangeBox}" name="checkAsisignmentWithSaveChangeBoxFun" reRender="theForm" oncomplete="$.unblockUI();"/>
+        <apex:actionFunction action="{!checkAsisignmentWithSubmittedChangeBox}" name="checkAsisignmentWithSubmittedChangeBoxFun" reRender="theForm" oncomplete="$.unblockUI();"/>
+
+        <apex:actionFunction action="{!addAccountCriteria}" name="addAccountCriteriaFun" reRender="theForm" oncomplete="showPop();" /> 
+        <apex:actionFunction action="{!deleteAccountCriteria}" name="deleteAccountCriteriaFun" reRender="theForm" oncomplete="$.unblockUI();" /> 
+        <apex:actionFunction action="{!deleteNewCriteria}" name="deleteNewCriteriaFun" status="statusCriteria" reRender="criteriaNewPanel" />
+        <apex:actionFunction action="{!editAccountCriteria}" name="editAccountCriteriaFun" reRender="theForm" oncomplete="showPop();" />
+        <apex:actionFunction action="{!saveEditAccountCriteria}" name="saveEditCriteria" reRender="theForm" status="statusEditCriteria" oncomplete="$.unblockUI();"/>
+
+        <apex:inputHidden value="{!selectedHidden}" id="selectedHidden"/>
+        <apex:inputHidden value="{!Index}" id="territoryIndex"/>
+        <apex:inputHidden value="{!AssignmentIndex}" id="assignmentIndex"/>
+        <apex:inputHidden value="{!RemovedIndex}" id="removedIndex"/>
+        <apex:inputHidden value="{!ExceptionAccountIndex}" id="exceptionAccountIndex"/>
+        <apex:inputHidden value="{!TerritoryId}" id="territoryId"/>
+        <apex:inputHidden value="{!IsShowSavePop}" id="isShowSavePop"/>
+        <apex:inputHidden value="{!IsShowSubmitPop}" id="isShowSubmitPop"/>
+        <apex:inputHidden value="{!AccountCriteriaIndex}" id="criteriaIndex" />
+        <apex:inputHidden value="{!ExtendedPanelId}" id="extendedPanelId" />
+        <apex:pageMessages escape="false"></apex:pageMessages>
+        <div class="content-bgs">
+            <div class="content-bg">
+                <div class="rowdiv">
+                    <div class="selectArea">
+                        <apex:selectList value="{!SavedChangeBoxId}" styleClass="select" size="1">
+                            <apex:selectOptions value="{!SavedTerritoryChanges}" />
+                            <apex:actionSupport event="onchange" action="{!changeSavedChangeBox}" onsubmit="blockScreen();" oncomplete="$.unblockUI();" reRender="theForm"/>
+                        </apex:selectList>
+                        <apex:selectList value="{!SubmittedChangeBoxId}" size="1" styleClass="select">
+                            <apex:selectOptions value="{!SubmittedTerritoryChanges}"/>
+                            <apex:actionSupport event="onchange" action="{!changeSubmittedChangeBox}" onsubmit="blockScreen();" oncomplete="$.unblockUI();" reRender="theForm"/>
+                        </apex:selectList>
+                    </div>
+                    <div class="content-top">
+                    </div>
+                    <div class="content-div">
+                        <div class="htmltabs">
+                            <div class="tab-left">
+                                 <div class="modify-sec"> 
+                                    <span class="modify-btn" >Click Territory To Modify</span> 
+                                    <apex:outputPanel rendered="{!IsEnableAllButtons}">
+                                        <a href="" class="add-existing btn-text" onclick="addTerritories();">Add Existing</a>
+                                        <apex:commandLink action="{!createNewTerritory}" value="Create New" styleClass="create-new btn-text" reRender="theForm" onclick="blockScreen();" oncomplete="$.unblockUI();"/>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!NOT(IsEnableAllButtons)}">
+                                        <a href="" class="add-existing btn-text-inactive">Add Existing</a>
+                                        <a href="" class="create-new btn-text-inactive"> Create New </a>
+                                    </apex:outputPanel>
+                                 </div>
+                                <ul class="tabs tab-ul-left">
+                                    <apex:repeat value="{!AvailableTerritories}" var="territory">
+                                        <li class="tab2" >
+                                            <div class="tab2 tabBox tab-bg" id="{!territory.Id}">
+                                                <h5>{!territory.Name}</h5>          
+                                                <div class="box-cnt">
+                                                    <div class="box-bg">
+                                                        <table class="amountTable" cellpadding="0" cellspacing="0">
+                                                            <tr>
+                                                                <td>Accts</td>
+                                                                <td>
+                                                                    <apex:outputField value="{!territory.Number_of_Accounts__c}"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>YTD Sales</td>
+                                                                <td>
+                                                                    <apex:outputField value="{!territory.Closed_Revenue_YTD__c}"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Pipeline(&gt;=50%)<br />Pipeline(&lt;50%)</td>
+                                                                <td>
+                                                                    <apex:outputField value="{!territory.Pipeline_Greater_Than_Percent50__c}" /> <br />
+                                                                    <apex:outputField value="{!territory.Pipeline_Less_Than_Percent50__c}"/>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>                                                   
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </apex:repeat>
+                                </ul>
+                            </div>
+                            <div class="tab-mid">
+                                <div class="tab1 tabsContent">
+                                    <div class="top-head-area">
+                                        <h3 class="text-head">{!Territory.Name}</h3>
+                                    </div>
+                                    <div class="terr-box">
+                                        <div class="territory-top"></div>
+                                        <div class="territory-div">
+                                            <div class="territory-border">
+                                                <p>Territory Name</p>
+                                                <div class="requiredInput">
+                                                    <div class="requiredBlock">   
+                                                    </div>
+                                                    <apex:inputField styleClass="tname requiredFields" value="{!Territory.Name}"/>
+                                                </div>
+                                                <p>Territory Owner</p>
+                                                <div class="requiredInput">
+                                                    <div class="requiredBlock"></div>
+                                                    <apex:inputField value="{!Territory.New_Owner__c}" styleClass="requiredFields"/>
+                                                </div>
+                                            </div>
+                                            <div class="territory-noborder">
+                                                <p class="desc-text">Territory <br />
+                                                  Description
+                                                </p>
+                                                <apex:inputTextarea value="{!Territory.Territory_Description__c}" styleClass="textarea" cols="20" rows="3"/>
+                                            </div>
+                                            <apex:outputPanel rendered="{!IsEnableAllButtons}">
+                                                <a href="" class="save-btn" onclick="saveTerritory();">Save</a>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!NOT(IsEnableAllButtons)}">
+                                                <a href="" class="save-btn btn-text-inactive">Save</a>
+                                            </apex:outputPanel>
+                                        </div>
+                                        <div class="territory-btm"></div>
+                                        <apex:outputPanel rendered="{!IsShowAssignmentAndExceptionAccount}" id="accountCriteriaPanel">     
+                                            <div class="accounts" id="accordion">
+                                                <h3 class="collapsiblePanel" id="accountCriteriaH">
+                                                    Account Criteria
+                                                    <apex:outputPanel rendered="{!IsEnableAllButtons}">
+                                                        <a href="" class="create" onclick="addCriteria(this);">Create</a>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!NOT(IsEnableAllButtons)}">
+                                                         <a href="" class="create btn-text-inactive createDisable">Create</a> 
+                                                    </apex:outputPanel>
+                                                </h3>
+                                                <div>
+                                                    <table class="inforTable" cellpadding="0" cellspacing="0">
+                                                        <thead>
+                                                            <th class="firstTh" width="30%">Field</th>
+                                                            <th width="25%">Operator</th>
+                                                            <th> Value </th>
+                                                            <th class="lastTh" width="15%">Actions</th>
+                                                        </thead>
+                                                        <tbody>
+                                                            <apex:variable value="{!0}" var="i" />
+                                                            <apex:repeat value="{!AccountCriteria}" var="criteria">
+                                                                <tr id="{!i}">
+                                                                    <td>
+                                                                        <apex:outputField value="{!criteria.Label__c}" style="width:100px;" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <apex:outputField value="{!criteria.Operator__c}" style="width:100px;" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <apex:outputField value="{!criteria.Value__c}" style="width:100px;" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <apex:outputPanel rendered="{!IsEnableAllButtons}" >
+                                                                            <a href="" class="assignmentEdit" onclick="editCriteria(this);" >
+                                                                                <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/edit-2.png')}"/>
+                                                                            </a>
+                                                                            <a href="" onclick="deleteCriteria(this)">
+                                                                                <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/delete-sym.png')}"/>
+                                                                            </a>
+                                                                        </apex:outputPanel>
+                                                                        <apex:outputPanel rendered="{!NOT(IsEnableAllButtons)}" >
+                                                                            <a href="" class="assignmentEdit" >
+                                                                                <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/edit-2.png')}"/>
+                                                                            </a>
+                                                                            <a href="">
+                                                                                <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/delete-sym.png')}"/>
+                                                                            </a>
+                                                                        </apex:outputPanel>
+                                                                    </td>
+                                                                    <apex:variable value="{!i+1}" var="i"/>
+                                                                </tr> 
+                                                            </apex:repeat>
+                                                        </tbody>
+                                                    </table> 
+                                                </div>
+                                                <h3 class="collapsiblePanel" id="createAssignmentH">
+                                                    Geography 
+                                                    <apex:outputPanel rendered="{!IsEnableAllButtons}">
+                                                        <a href="" class="create" onclick="createAssignment();">Create</a>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!NOT(IsEnableAllButtons)}">
+                                                         <a href="" class="create btn-text-inactive createDisable">Create</a> 
+                                                    </apex:outputPanel>
+                                                </h3>
+                                                <div>
+                                                    <table class="inforTable" cellpadding="0" cellspacing="0">
+                                                        <thead>
+                                                            <th class="firstTh" width="6%">
+                                                                <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/header-symbol.png')}" />
+                                                            </th>
+                                                            <th>Country</th>
+                                                            <th>State / Province</th>
+                                                            <th>Postal Start</th>
+                                                            <th>Postal End</th>
+                                                            <th class="lastTh">Actions</th>
+                                                        </thead>
+                                                        <tbody> 
+                                                            <apex:variable value="{!0}" var="i"/>
+                                                            <apex:repeat value="{!Assignments}" var="assignment">
+                                                                <tr id="{!i}">
+                                                                    <td>
+                                                                        <div class="drag">
+                                                                            <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/body-symbol.png')}" alt="" />
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>{!assignment.Country__c}</td>
+                                                                    <td>{!assignment.State__c}</td>
+                                                                    <td>{!assignment.Postal_Start__c}</td>
+                                                                    <td>{!assignment.Postal_End__c}</td>
+                                                                    <td class="lastTd">
+                                                                        <apex:outputPanel rendered="{!IsEnableAllButtons}" >
+                                                                            <a href="" class="assignmentBreak" onclick="breakAssignment(this);"> 
+                                                                                <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/edit-1.png')}"/>
+                                                                            </a>
+                                                                            <a href="" class="assignmentEdit" onclick="editAssignment(this);" >
+                                                                                <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/edit-2.png')}"/>
+                                                                            </a>
+                                                                            <a href="" onclick="delAssignment(this)">
+                                                                                <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/delete-sym.png')}"/>
+                                                                            </a>
+                                                                        </apex:outputPanel>
+                                                                        <apex:outputPanel rendered="{!NOT(IsEnableAllButtons)}" >
+                                                                            <a href="" class="assignmentBreak"> 
+                                                                                <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/edit-1.png')}"/>
+                                                                            </a>
+                                                                            <a href="" class="assignmentEdit" >
+                                                                                <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/edit-2.png')}"/>
+                                                                            </a>
+                                                                            <a href="">
+                                                                                <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/delete-sym.png')}"/>
+                                                                            </a>
+                                                                        </apex:outputPanel>
+                                                                    </td>
+                                                                </tr>   
+                                                                <apex:variable value="{!i+1}" var="i"/> 
+                                                            </apex:repeat>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <h3 class="collapsiblePanel" id="createExceptionAccountH">
+                                                    Exception Accounts
+                                                    <apex:outputPanel rendered="{!IsEnableAllButtons}">
+                                                        <a href="" class="create" onclick="createExceptionAccount();">Create</a> 
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!NOT(IsEnableAllButtons)}">
+                                                        <a href="" class="create btn-text-inactive createDisable">Create</a> 
+                                                    </apex:outputPanel>
+                                                </h3>
+                                                <div>
+                                                    <apex:outputLabel id="exceptionAccountsTable" >
+                                                        <table class="inforTable" cellpadding="0" cellspacing="0">
+                                                            <thead>
+                                                                <th class="firstTh" width="20%">Name</th>
+                                                                <th width="20%">Territory</th>
+                                                                <th>Country</th>
+                                                                <th>State</th>
+                                                                <th>Postal Code</th>
+                                                                <th class="lastTh"></th>
+                                                            </thead>
+                                                            <tbody>
+                                                                <apex:variable value="{!0}" var="accountIndex"/>
+                                                                <apex:repeat value="{!ExceptionAccounts}" var="account">
+                                                                    <tr id="{!accountIndex}">
+                                                                        <td>{!account.Name}</td>
+                                                                        <td>{!account.New_Territory__r.Name}</td>
+                                                                        <td>
+                                                                            <apex:outputPanel rendered="{!LOWER(Config.Billing_Shipping_Address__c) == 'shipping'}">
+                                                                                {!account.ShippingCountry}
+                                                                            </apex:outputPanel>
+                                                                            <apex:outputPanel rendered="{!LOWER(Config.Billing_Shipping_Address__c) != 'shipping'}">
+                                                                                {!account.BillingCountry}
+                                                                            </apex:outputPanel>
+                                                                        </td>
+                                                                        <td>
+                                                                            <apex:outputPanel rendered="{!LOWER(Config.Billing_Shipping_Address__c) == 'shipping'}">
+                                                                                {!account.ShippingState}
+                                                                            </apex:outputPanel>
+                                                                            <apex:outputPanel rendered="{!LOWER(Config.Billing_Shipping_Address__c) != 'shipping'}">
+                                                                                {!account.BillingState}
+                                                                            </apex:outputPanel>
+                                                                        </td>
+                                                                        <td>
+                                                                            <apex:outputPanel rendered="{!LOWER(Config.Billing_Shipping_Address__c) == 'shipping'}">
+                                                                                {!account.ShippingPostalCode}
+                                                                            </apex:outputPanel>
+                                                                            <apex:outputPanel rendered="{!LOWER(Config.Billing_Shipping_Address__c) != 'shipping'}">
+                                                                                {!account.BillingPostalCode}
+                                                                            </apex:outputPanel>
+                                                                        </td>
+                                                                        <td class="lastTd">
+                                                                            <apex:outputPanel rendered="{!IsEnableAllButtons}">
+                                                                                <a href="" onclick="delExceptionAccount(this)">
+                                                                                    <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/delete-sym.png')}"/>
+                                                                                </a>
+                                                                            </apex:outputPanel>
+                                                                            <apex:outputPanel rendered="{!NOT(IsEnableAllButtons)}">
+                                                                                <a href="">
+                                                                                    <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/delete-sym.png')}"/>
+                                                                                </a>
+                                                                            </apex:outputPanel>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <apex:variable value="{!accountIndex+1}" var="accountIndex"/>
+                                                                </apex:repeat>
+                                                            </tbody>    
+                                                        </table>
+                                                    </apex:outputLabel>
+                                                </div>
+                                            </div>                                           
+                                        </apex:outputPanel>
+                                    </div>      
+                                </div>
+                            </div>
+                            <div class="tab-right">
+                                <div class="territory-sec"> 
+                                    <span class="modify-btn">Modified Territories</span> 
+                                    <apex:outputPanel rendered="{!IsEnableAllButtons}" id="buttonPanel">
+                                        <apex:outputPanel rendered="{!ChangedTerritories.size > 0}">
+                                            <a href="" class="what-if btn-text" onclick="calculateTerritoryFields()"> What If&acute;s </a>
+                                            <a href="" class="save-btn btn-text" onclick="checkAsisignmentWithSaveChangeBox();">Save</a>
+                                            <a href="" class="submit-btn btn-text" onclick="checkAsisignmentWithSubmittedChangeBox();" >SUBMIT</a>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!ChangedTerritories.size == 0}">
+                                            <a href="" class="what-if btn-text-inactive">What If&acute;s</a> 
+                                            <a href="" class="save-btn btn-text-inactive" >Save</a>
+                                            <a href="" class="submit-btn btn-text-inactive" >SUBMIT</a>
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!NOT(IsEnableAllButtons)}" >
+                                        <a href="" class="what-if btn-text-inactive">What If&acute;s</a> 
+                                        <apex:outputPanel rendered="{!IsDisableSaveAndSubmitButton}">
+                                            <a href="" class="save-btn btn-text-inactive" >Save</a>
+                                            <a href="" class="submit-btn btn-text-inactive" >SUBMIT</a>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!NOT(IsDisableSaveAndSubmitButton)}">
+                                            <a href="" class="save-btn btn-text" onclick="checkAsisignmentWithSaveChangeBox();">Save</a>
+                                            <a href="" class="submit-btn btn-text" onclick="checkAsisignmentWithSubmittedChangeBox();" >SUBMIT</a>
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                </div>
+                                <ul class="tabs tab-ul-right">
+                                    <apex:variable value="{!0}" var="i"/>
+                                    <apex:repeat value="{!ChangedTerritories}" var="territory">
+                                        <li class="tab4 tab-li" id="{!i}">
+                                            <div class="tab4 tabBox tab-bg">
+                                                <h5>{!territory.Name} <a href="" class="deleteIcon"></a></h5>
+                                                <div class="box-cnt"> 
+                                                    <div class="box-bg">
+                                                        <table class="amountTable" cellpadding="0" cellspacing="0">
+                                                            <tr>
+                                                                <td>Accts</td>
+                                                                <td>
+                                                                    <apex:outputField value="{!territory.New_Number_of_Accounts__c}"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>YTD Sales</td>
+                                                                <td>
+                                                                    <apex:outputField value="{!territory.New_Closed_Revenue_YTD__c}"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td> Pipeline(&gt;=50%)<br />Pipeline(&lt;50%)</td>
+                                                                <td>
+                                                                    <apex:outputField value="{!territory.New_Pipeline_Greater__c}" /> <br />
+                                                                    <apex:outputField value="{!territory.New_Pipeline_Less__c}"/>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li> 
+                                        <apex:variable value="{!i+1}" var="i"/>  
+                                    </apex:repeat>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+
+        <div id="InlinEditDialog" class="overlayDialog inlineEditDialog" style="max-width:800px; display:block;left:400px; top:90px;visibility:hidden;">
+            <div class="topRight">
+               <div class="topLeft">
+                   <img id="InlineEditDialogX" onmouseover="this.className='dialogCloseOn'" onmouseout="this.className='dialogClose'" onclick="closePop()" class="dialogClose" src="/s.gif" />
+                   <apex:outputPanel rendered="{!IsShowAddExistingPop}">
+                       <h2 id="InlineEditDialogTitle">
+                          Add Existing Territories
+                       </h2>
+                   </apex:outputPanel>  
+                   <apex:outputPanel rendered="{!IsShowNewAssignmentPop}">
+                       <h2 id="InlineEditDialogTitle">
+                          Create Assignments
+                       </h2>
+                   </apex:outputPanel> 
+                   <apex:outputPanel rendered="{!IsShowBreakAssignmentPop}">
+                       <h2 id="InlineEditDialogTitle">
+                         Split Assignment
+                       </h2>
+                   </apex:outputPanel> 
+                   <apex:outputPanel rendered="{!IsShowEditAssignmentPop}">
+                       <h2 id="InlineEditDialogTitle">
+                          Edit Assignment
+                       </h2>
+                   </apex:outputPanel>  
+                   <apex:outputPanel rendered="{!IsShowExceptionAccountPop}">
+                       <h2 id="InlineEditDialogTitle">
+                          Add Exception Account
+                       </h2>
+                   </apex:outputPanel>   
+                   <apex:outputPanel rendered="{!IsShowCreateCriteriaPop}">
+                       <h2 id="InlineEditDialogTitle">
+                            Add Account Criteria
+                       </h2>
+                   </apex:outputPanel>  
+                   <apex:outputPanel rendered="{!IsShowEditCriteriaPop}" >
+                        <h2>
+                            Edit Account Criteria
+                        </h2>
+                   </apex:outputPanel>           
+               </div>
+            </div>
+            <div class="middle">
+                <div class="innerContent" id="InlineEditDialogContent">
+                    <div class="activeField">
+                        <div class="inlineEditCompoundDiv" style="text-align:left;max-height:450px; min-width:600px; overflow-y:auto;overflow-x:hidden;color:#000"> 
+                            <apex:outputPanel rendered="{!IsShowAddExistingPop}">
+                                <div class="duelingListBox" id="colselector" style="text-align:left;padding-left:30px;">
+                                    <table class="layout">
+                                        <tbody>
+                                            <tr>
+                                                <apex:outputText >
+                                                    <td class="selectCell">
+                                                        <div class="selectTitle">
+                                                            <label for="colselector_select_0">    
+                                                                Available Territories                                    
+                                                            </label>
+                                                        </div>
+                                                        <apex:selectList size="12" multiselect="true" styleClass="selectCell selectElementLeft" id="leftElement" ondblclick="selectRight();" style="min-width:150px;width:150px;width:auto !important;">
+                                                            <apex:selectOptions value="{!PopAvailableTerritories}" />
+                                                        </apex:selectList>                            
+                                                    </td>
+                                                    <td class="buttonCell">
+                                                        <div class="text">Add</div>
+                                                        <div class="text">
+                                                            <a href="javascript:selectRight();" id="selectRight">
+                                                            <img src="/s.gif" alt="Add" class="rightArrowIcon" title="Add" /></a>
+                                                        </div>
+                                                        <div class="text">
+                                                            <a href="javascript:selectLeft();" id="selectLeft">
+                                                            <img src="/s.gif" alt="Remove" class="leftArrowIcon" title="Remove" /></a>
+                                                        </div>
+                                                        <div class="duelingText">Remove</div>
+                                                    </td>
+                                                    <td class="selectCell">
+                                                        <div class="selectTitle">
+                                                            <label for="colselector_select_1">
+                                                                Selected Territories                                    
+                                                            </label>
+                                                        </div>
+                                                        <apex:selectList size="12" multiselect="true" id="rightElement" styleClass="selectElementRight" ondblclick="selectLeft();" style="min-width:150px;width:150px;width:auto !important;">
+                                                            <apex:selectOptions value="{!PopSelectedTerritories}" />
+                                                        </apex:selectList>
+                                                    </td>
+                                                </apex:outputText>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div style="width:300px;height:30px;margin:10px auto;">
+                                    <a href="" class="btn1" onclick="addPopTerritories();">
+                                        <span class="tabC">
+                                            <span class="tabL"></span>
+                                                Add
+                                            <span class="tabR"></span>
+                                        </span>
+                                    </a>
+                                    <a href="" class="btn1" onclick="closePop();">
+                                        <span class="tabC">
+                                            <span class="tabL"></span>
+                                                Cancel
+                                            <span class="tabR"></span>
+                                        </span>
+                                    </a>
+                                    <apex:actionStatus id="status">
+                                        <apex:facet name="start">
+                                            <img style="margin-top:15px;" src="/img/loading.gif" alt="loading..." />
+                                        </apex:facet>
+                                    </apex:actionStatus>
+                                </div>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!IsShowCreateCriteriaPop}" id="criteriaNewPanel">
+                                <script type="text/javascript">
+                                    $(function(){
+                                        $( ".datepicker" ).datepicker();
+                                    });
+                                </script>
+                                <div class="popupDiv">
+                                    <table class="inforTable" cellpadding="0" cellspacing="0">
+                                        <thead>
+                                            <th class="firstTh">Field</th>
+                                            <th>Operator</th>
+                                            <th>Value</th>
+                                            <th class="lastTh">Action</th>
+                                        </thead>
+                                        <tbody>
+                                            <apex:variable value="{!0}" var="i" />
+                                            <apex:repeat value="{!NewCriteria}" var="criteria">
+                                                <tr id="{!i}">
+                                                    <td width="38%">
+                                                        <apex:selectList value="{!criteria.Field__c}" size="1" style="width:160px;">
+                                                            <apex:selectOptions value="{!AccountFields}" /> 
+                                                            <apex:actionSupport event="onchange" action="{!changeAccountCriteria}" 
+                                                            onsubmit="changeField(this)" 
+                                                            status="statusCriteriaChange"  reRender="criteriaNewPanel" />  
+                                                        </apex:selectList>
+                                                        <apex:actionStatus id="statusCriteriaChange">
+                                                            <apex:facet name="start">
+                                                                <img style="margin-top:15px;" src="/img/loading.gif" alt="loading..." />
+                                                            </apex:facet>
+                                                        </apex:actionStatus>
+                                                    </td>
+                                                    <td>
+                                                        <apex:selectList value="{!criteria.Operator__c}" size="1" >
+                                                            <apex:selectOptions value="{!Operators}" />
+                                                        </apex:selectList>
+                                                    </td>
+                                                    <td>
+                                                        <apex:inputText style="width:120px;" value="{!criteria.Value__c}" styleClass="{!IF(criteria.IsDate__c, 'newCriteriaValue datepicker', 'newCriteriaValue')}"/>
+                                                        <apex:outputPanel rendered="{!criteria.IsMultiple__c}">
+                                                            <a href="" onclick="redirectToNewCriteriaValues(this);" >
+                                                                <img src="/s.gif" alt="New Owner Lookup (New Window)" class="lookupIcon" onblur="this.className = 'lookupIcon';" onfocus="this.className = 'lookupIconOn';" onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';" onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';" title="New Owner Lookup (New Window)" />
+                                                            </a>
+                                                        </apex:outputPanel>
+                                                    </td>
+                                                    <td>
+                                                        <a href="" onclick="deleteNewCriteria(this);">
+                                                            <img src="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/images/delete-sym.png')}"/>
+                                                        </a>
+                                                    </td>
+                                                  </tr>
+                                                  <apex:variable value="{!i+1}" var="i" />
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                    <apex:commandLink action="{!addMoreCriteria}" reRender="criteriaNewPanel" status="statusCriteria" styleClass="btn1 addRowsBtn">
+                                        <span class="tabC">
+                                            <span class="tabL"></span>
+                                                Add More Rows
+                                            <span class="tabR"></span>
+                                        </span>
+                                    </apex:commandLink>
+                                    <div class="clearfix"></div>
+                                    <div class="btmBtnArea">
+                                        <div class="btmBtnAreaCon twoBtn">
+                                            <a href="" onclick="saveCreateCriteria();" class="btn1">
+                                                <span class="tabC">
+                                                    <span class="tabL"></span>
+                                                        Save 
+                                                    <span class="tabR"></span>
+                                                </span>
+                                            </a>
+                                            <a href="" onclick="closePop();" class="btn1">
+                                                <span class="tabC">
+                                                    <span class="tabL"></span>
+                                                        Cancel
+                                                    <span class="tabR"></span>
+                                                </span>
+                                            </a>
+                                            <apex:actionStatus id="statusCriteria">
+                                                <apex:facet name="start">
+                                                    <img style="margin-top:15px;" src="/img/loading.gif" alt="loading..." />
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                            <div class="clearfix"></div>
+                                        </div>
+                                    </div> 
+                                </div>   
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!IsShowEditCriteriaPop}" id="criteriaEditPanel" >
+                                <script type="text/javascript">
+                                    $(function(){
+                                        $( ".datepicker" ).datepicker();
+                                    });
+                                </script>
+                                <div class="popupDiv">
+                                    <table class="inforTable" cellpadding="0" cellspacing="0">
+                                        <thead>
+                                            <th class="firstTh">Field</th>
+                                            <th>Operator</th>
+                                            <th class="lastTh">Value</th>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <apex:selectList value="{!AcctCriteria.Field__c}" size="1" >
+                                                        <apex:selectOptions value="{!AccountFields}" />
+                                                        <apex:actionSupport event="onchange" action="{!changeAccountCriteriaForEditPanel}" 
+                                                        status="statusCriteriaChange2" 
+                                                        onsubmit="$(this).closest('tr').find('input:text').val('');" reRender="criteriaEditPanel" /> 
+                                                    </apex:selectList>
+                                                    <apex:actionStatus id="statusCriteriaChange2">
+                                                        <apex:facet name="start">
+                                                            <img style="margin-top:15px;" src="/img/loading.gif" alt="loading..." />
+                                                        </apex:facet>
+                                                    </apex:actionStatus>
+                                                </td>
+                                                <td>
+                                                    <apex:selectList value="{!AcctCriteria.Operator__c}" size="1" >
+                                                        <apex:selectOptions value="{!Operators}" />
+                                                    </apex:selectList>
+                                                </td>
+                                                <td>
+                                                    <apex:inputText value="{!AcctCriteria.Value__c}" styleClass="{!IF(AcctCriteria.IsDate__c, 'editCriteriaValue datepicker', 'editCriteriaValue')}" /> 
+                                                    <apex:outputPanel rendered="{!AcctCriteria.IsMultiple__c}">
+                                                        <a href="" onclick="redirectToEditCriteriaValues(this)">
+                                                            <img src="/s.gif" alt="New Owner Lookup (New Window)" class="lookupIcon" onblur="this.className = 'lookupIcon';" onfocus="this.className = 'lookupIconOn';" onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';" onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';" title="New Owner Lookup (New Window)" />
+                                                        </a>
+                                                    </apex:outputPanel>
+                                                </td>
+                                              </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="btmBtnArea">
+                                        <div class="btmBtnAreaCon twoBtn">
+                                            <a href="" onclick="saveEditCriteria();" class="btn1">
+                                                <span class="tabC">
+                                                    <span class="tabL"></span>
+                                                        Save 
+                                                    <span class="tabR"></span>
+                                                </span>
+                                            </a>
+                                            <a href="" onclick="closePop();" class="btn1">
+                                                <span class="tabC">
+                                                    <span class="tabL"></span>
+                                                        Cancel
+                                                    <span class="tabR"></span>
+                                                </span>
+                                            </a>
+                                            <apex:actionStatus id="statusEditCriteria">
+                                                <apex:facet name="start">
+                                                    <img style="margin-top:15px;" src="/img/loading.gif" alt="loading..." />
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                            <div class="clearfix"></div>
+                                        </div>
+                                    </div> 
+                                </div>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!IsShowNewAssignmentPop}" id="assignmentNewPanel">
+                                <div class="popupDiv">
+                                    <div class="selectBox">
+                                        <apex:selectList size="1" value="{!AssignmentType}" styleClass="assignmentType" onchange="changeAssignmentType(this);" >
+                                            <apex:selectOption itemLabel="Type Assignments" itemValue="Type Assignments"></apex:selectOption>
+                                            <apex:selectOption itemLabel="Paste Assignments" itemValue="Paste Assignments"></apex:selectOption>                                          
+                                        </apex:selectList>
+                                    </div>
+                                    <apex:outputPanel styleClass="singleAssignmentPanel">
+                                        <table class="inforTable" cellpadding="0" cellspacing="0">
+                                            <thead>
+                                                <th class="firstTh">Country</th>
+                                                <th>State / Province</th>
+                                                <th>Postal Start</th>
+                                                <th class="lastTh">Postal End</th>
+                                            </thead>
+                                            <tbody>
+                                                <apex:repeat value="{!NewAssignments}" var="assignment">
+                                                    <tr>
+                                                        <td>
+                                                            <apex:inputText value="{!assignment.Country__c}"/>
+                                                        </td>
+                                                        <td>
+                                                            <apex:inputText value="{!assignment.State__c}"/>
+                                                        </td>
+                                                        <td>
+                                                            <apex:inputText value="{!assignment.Postal_Start__c}"/>
+                                                        </td>
+                                                        <td>
+                                                            <apex:inputText value="{!assignment.Postal_End__c}"/>
+                                                        </td>
+                                                      </tr>
+                                                </apex:repeat>
+                                            </tbody>
+                                        </table>
+                                        <apex:commandLink action="{!addMoreAssignments}" reRender="assignmentNewPanel" status="statusAssignment" styleClass="btn1 addRowsBtn">
+                                            <span class="tabC">
+                                                <span class="tabL"></span>
+                                                    Add More Rows
+                                                <span class="tabR"></span>
+                                            </span>
+                                        </apex:commandLink>
+                                        <div class="clearfix"></div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel styleClass="multipleAssignmentPanel" style="display:none;">
+                                        <span class="hintInfor">Paste up to 400 assignments with the following format: Country,State,ZipStart,ZipEnd</span>
+                                        <apex:inputTextarea value="{!assignmentsCSV}" styleClass="textArea assignmentCsv" style="width:500px;height:150px;"/>
+                                    </apex:outputPanel>
+
+                                    <div class="btmBtnArea">
+                                        <div class="btmBtnAreaCon twoBtn">
+                                            <a href="" onclick="saveCreateAssignment();" class="btn1">
+                                                <span class="tabC">
+                                                    <span class="tabL"></span>
+                                                        Save 
+                                                    <span class="tabR"></span>
+                                                </span>
+                                            </a>
+                                            <a href="" onclick="closePop();" class="btn1">
+                                                <span class="tabC">
+                                                    <span class="tabL"></span>
+                                                        Cancel
+                                                    <span class="tabR"></span>
+                                                </span>
+                                            </a>
+                                            <apex:actionStatus id="statusAssignment">
+                                                <apex:facet name="start">
+                                                    <img style="margin-top:15px;" src="/img/loading.gif" alt="loading..." />
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                            <div class="clearfix"></div>
+                                        </div>
+                                    </div>    
+                                </div>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!IsShowBreakAssignmentPop}" id="brokenAssignmentPanel">
+                                <div class="popupDiv">
+                                    <table class="inforTable" cellpadding="0" cellspacing="0">                             
+                                        <thead>
+                                            <th class="firstTh">Country</th>
+                                            <th>State / Province</th>
+                                            <th>Postal Start</th>
+                                            <th>Postal End</th>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <apex:outputText value="{!Assignment.Country__c}"></apex:outputText>
+                                                </td>
+                                                <td>
+                                                    <apex:outputText value="{!Assignment.State__c}"></apex:outputText>
+                                                </td>
+                                                <td>
+                                                    <apex:outputText value="{!Assignment.Postal_Start__c}"></apex:outputText>
+                                                    <apex:inputHidden value="{!Assignment.Postal_Start__c}" id="assignmentPostalStart"/>
+                                                </td>
+                                                <td>
+                                                    <apex:outputText value="{!Assignment.Postal_End__c}" styleClass="lastTd"></apex:outputText>
+                                                    <apex:inputHidden value="{!Assignment.Postal_End__c}" id="assignmentPostalEnd"/>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <table class="inforTable" cellpadding="0" cellspacing="0">
+                                        <thead>
+                                            <th class="firstTh">Country</th>
+                                            <th>State / Province</th>
+                                            <th>Postal Start</th>
+                                            <th>Postal End</th>
+                                            <th class="lastTh"></th>
+                                        </thead>
+                                        <tbody>
+                                            <apex:variable value="{!0}" var="assignIndex"/>
+                                            <apex:repeat value="{!BrokenAssignments}" var="assignmentDetail">
+                                                <tr >
+                                                    <td>
+                                                        <apex:outputText value="{!assignmentDetail.Country__c}" />
+                                                    </td>
+                                                    <td>
+                                                        <apex:inputText value="{!assignmentDetail.State__c}" rendered="{!Trim(Assignment.State__c) == ''}"/>
+                                                        <apex:outputText value="{!assignmentDetail.State__c}" rendered="{!Trim(Assignment.State__c) != ''}"/>
+                                                    </td>
+                                                    <td>
+                                                        <apex:inputText value="{!assignmentDetail.Postal_Start__c}" styleClass="postalStart" />
+                                                    </td>
+                                                    <td>
+                                                        <apex:inputText value="{!assignmentDetail.Postal_End__c}" styleClass="postalEnd" />
+                                                    </td>
+                                                    <td>
+                                                        <apex:commandLink value="Del" status="status2" reRender="brokenAssignmentPanel" action="{!deleteBrokenAssignment}" >
+                                                            <apex:param name="index" value="{!assignIndex}"/>
+                                                        </apex:commandLink> &nbsp; &nbsp;
+                                                        <apex:actionStatus id="status2">
+                                                            <apex:facet name="start">
+                                                                <img style="margin-top:15px;" src="/img/loading.gif" alt="loading" />
+                                                            </apex:facet>
+                                                        </apex:actionStatus>
+                                                      </td>
+                                                  </tr> 
+                                                  <apex:variable value="{!assignIndex+1}" var="assignIndex"/>
+                                              </apex:repeat> 
+                                        </tbody>
+                                    </table>
+                                    <div class="btmBtnArea">
+                                        <div class="btmBtnAreaCon">
+                                            <apex:commandLink action="{!addBrokenAssignment}" reRender="brokenAssignmentPanel" status="breakAssignmentStatus" styleClass="btn1">
+                                                <span class="tabC">
+                                                    <span class="tabL"></span>
+                                                        Add Another
+                                                    <span class="tabR"></span>
+                                                </span>
+                                            </apex:commandLink>
+                                            <a href="" class="btn1" onclick="saveBreakAssignment();">
+                                                <span class="tabC">
+                                                    <span class="tabL"></span>
+                                                        Save
+                                                    <span class="tabR"></span>
+                                                </span>
+                                            </a>
+                                            <a href="" onclick="closePop();" class="btn1">
+                                                <span class="tabC">
+                                                    <span class="tabL"></span>
+                                                        Cancel
+                                                    <span class="tabR"></span>
+                                                </span>
+                                            </a>
+                                            <apex:actionStatus id="breakAssignmentStatus">
+                                                <apex:facet name="start">
+                                                    <img style="margin-top:15px;" src="/img/loading.gif" alt="loading..." />
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                            <div class="clearfix"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!IsShowEditAssignmentPop}" id="assignmentEditPanel">
+                                <div class="popupDiv">
+                                    <table class="inforTable editTable" cellpadding="0" cellspacing="0">
+                                        <tbody>
+                                            <tr>
+                                                <td>Country</td>
+                                                <td class="">
+                                                    <apex:inputText value="{!Assignment.Country__c}"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>State / Province</td>
+                                                <td class="">
+                                                    <apex:inputText value="{!Assignment.State__c}"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Postal Start</td>
+                                                <td class="">
+                                                    <apex:inputText value="{!Assignment.Postal_Start__c}"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Postal End</td>
+                                                <td class="">
+                                                    <apex:inputText value="{!Assignment.Postal_End__c}"/>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="btmBtnArea">
+                                        <div class="btmBtnAreaCon twoBtn">
+                                           <a href="" onclick="saveEditAssignment();" class="btn1">
+                                                <span class="tabC">
+                                                    <span class="tabL"></span>
+                                                        Save 
+                                                    <span class="tabR"></span>
+                                                </span>
+                                            </a>
+                                            <a href="" onclick="closePop();" class="btn1">
+                                                <span class="tabC">
+                                                    <span class="tabL"></span>
+                                                        Cancel
+                                                    <span class="tabR"></span>
+                                                </span>
+                                            </a>
+                                            <apex:actionStatus id="statusEditAssignment">
+                                                <apex:facet name="start">
+                                                    <img style="margin-top:15px;" src="/img/loading.gif" alt="loading..." />
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                            <div class="clearfix"></div>  
+                                        </div>
+                                    </div>
+                                </div>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!IsShowExceptionAccountPop}" id="exceptionAccountPanel">
+                                <div class="popupDiv">
+                                    <div class="searchBox">
+                                        <span class="searchTitle">Search</span> 
+                                        <apex:inputText value="{!KeyWord}" styleClass="searchInput nameKeyWord"/> 
+                                        <apex:inputText value="{!NumberKeyWord}" styleClass="searchInput numberKeyWord"/>
+                                        <apex:inputText value="{!CountryKeyWord}" styleClass="searchInput countryKeyWord"/> 
+                                        <apex:inputText value="{!StateKeyWord}" styleClass="searchInput stateKeyWord"/> 
+                                        <apex:inputText value="{!CityKeyWord}" styleClass="searchInput cityKeyWord" />
+                                        <span style="margin-left:6px;width:200px;">
+                                            <apex:commandButton value="Go" styleClass="save-btn btn-text" action="{!searchAccount}" reRender="exceptionAccountPanel" status="searchAccountStatus"/>
+                                            <apex:commandButton value="Save" action="{!saveExceptionAccount}"  styleClass="save-btn btn-text" reRender="theForm" status="searchAccountStatus"/>
+                                            <apex:actionStatus id="searchAccountStatus">
+                                                <apex:facet name="start"> 
+                                                    <img src="/img/loading.gif" alt="loading"/>
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                        </span>
+                                    </div>
+                                    <apex:outputPanel rendered="{!AccountList.size > 0}" >
+                                        <table class="inforTable" cellpadding="0" cellspacing="0">
+                                            <thead>
+                                                <th class="firstTh">&nbsp;</th>
+                                                <th width="25%">Name</th>
+                                                <th>Number </th>
+                                                <th width="20%">Territory</th>
+                                                <th>Country</th>
+                                                <th>State</th>
+                                                <th>City</th>
+                                                <th class="lastTh">Postal Code</th>
+                                            </thead>
+                                            <tbody>
+                                                <apex:repeat value="{!AccountList}" var="acct">
+                                                    <tr>
+                                                        <td>
+                                                        <apex:inputCheckbox value="{!acct.IsChecked}"/>
+                                                        </td>
+                                                        <td>
+                                                          <apex:outputText value="{!acct.Name}"></apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                          <apex:outputText value="{!acct.AccountNumber}"></apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                          <apex:outputText value="{!acct.Territory}"></apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                          <apex:outputText value="{!acct.Country}"></apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                          <apex:outputText value="{!acct.State}"></apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                          <apex:outputText value="{!acct.City}"></apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                          <apex:outputText value="{!acct.PostalCode}"></apex:outputText>
+                                                        </td>
+                                                    </tr>   
+                                                </apex:repeat>
+                                            </tbody>
+                                        </table>
+                                        <div class="searchBox" style="margin-top:30px;">
+                                            <div style="float:right;width:120px;">
+                                                <apex:commandButton value="Save" action="{!saveExceptionAccount}"  styleClass="save-btn btn-text" reRender="theForm" status="searchAccountStatus1"/>
+                                                <apex:actionStatus id="searchAccountStatus1">
+                                                    <apex:facet name="start"> 
+                                                        <img src="/img/loading.gif" alt="loading"/>
+                                                    </apex:facet>
+                                                </apex:actionStatus>
+                                            </div> 
+                                            <div class="clearfix"></div>                                      
+                                        </div>    
+                                    </apex:outputPanel>
+                                </div>
+                                <script type="text/javascript">
+                                    $(function(){
+                                        $('.nameKeyWord').focus(function(){
+                                            if($(this).val() == 'Name')
+                                            {
+                                                $(this).css('color', 'black');
+                                                $(this).val('');
+                                            }
+                                        });
+
+                                        $('.nameKeyWord').blur(function(){
+                                            if($(this).val() == '')
+                                            {
+                                                $(this).css('color', '#ccc');
+                                                $(this).val('Name');
+
+                                            }
+                                        });
+
+                                        $('.numberKeyWord').focus(function(){
+                                            if($(this).val() == 'Account Number')
+                                            {
+                                                $(this).css('color', 'black');
+                                                $(this).val('');
+                                            }
+                                        });
+
+                                        $('.numberKeyWord').blur(function(){
+                                            if($(this).val() == '')
+                                            {
+                                                $(this).css('color', '#ccc');
+                                                $(this).val('Account Number');
+
+                                            }
+                                        });
+
+                                        $('.countryKeyWord').focus(function(){
+                                            if($(this).val() == 'Account Country')
+                                            {
+                                                $(this).css('color', 'black');
+                                                $(this).val('');
+                                            }
+                                        });
+
+                                        $('.countryKeyWord').blur(function(){
+                                            if($(this).val() == '')
+                                            {
+                                                $(this).css('color', '#ccc');
+                                                $(this).val('Account Country');
+
+                                            }
+                                        });
+
+                                        $('.stateKeyWord').focus(function(){
+                                            if($(this).val() == 'Account State')
+                                            {
+                                                $(this).css('color', 'black');
+                                                $(this).val('');
+                                            }
+                                        });
+
+                                        $('.stateKeyWord').blur(function(){
+                                            if($(this).val() == '')
+                                            {
+                                                $(this).css('color', '#ccc');
+                                                $(this).val('Account State');
+
+                                            }
+                                        });
+
+                                        $('.cityKeyWord').focus(function(){
+                                            if($(this).val() == 'Account City')
+                                            {
+                                                $(this).css('color', 'black');
+                                                $(this).val('');
+                                            }
+                                        });
+
+                                        $('.cityKeyWord').blur(function(){
+                                            if($(this).val() == '')
+                                            {
+                                                $(this).css('color', '#ccc');
+                                                $(this).val('Account City');
+
+                                            }
+                                        });
+
+                                        if('{!IsShowExceptionAccountPop}' == 'true')
+                                        {
+                                            $('.nameKeyWord').focus();
+                                            if($('.numberKeyWord').val() == '' || $('.numberKeyWord').val() == 'Account Number')
+                                            {
+                                                $('.numberKeyWord').css('color', '#ccc');
+                                                $('.numberKeyWord').val('Account Number');
+                                            }
+                                            if($('.countryKeyWord').val() == '' || $('.countryKeyWord').val() == 'Account Country')
+                                            {
+                                                $('.countryKeyWord').css('color', '#ccc');
+                                                $('.countryKeyWord').val('Account Country');
+                                            }
+                                            if($('.stateKeyWord').val() == '' || $('.stateKeyWord').val() == 'Account State')
+                                            {
+                                                $('.stateKeyWord').css('color', '#ccc');
+                                                $('.stateKeyWord').val('Account State');
+                                            }
+                                            if($('.cityKeyWord').val() == '' || $('.cityKeyWord').val() == 'Account City')
+                                            {
+                                                $('.cityKeyWord').css('color', '#ccc');
+                                                $('.cityKeyWord').val('Account City');
+                                            }   
+                                        }
+                                    });
+                                </script>
+                            </apex:outputPanel>
+                        </div>
+                    </div>
+                </div> 
+            </div>
+        </div>
+        <div id="InlinEditDialog1" class="overlayDialog inlineEditDialog" style="max-width:800px; display:block;left:400px; top:90px;visibility:hidden;">
+            <div class="topRight">
+               <div class="topLeft">
+                   <img id="InlineEditDialogX" onmouseover="this.className='dialogCloseOn'" onmouseout="this.className='dialogClose'" onclick="closePopChangeBox()" class="dialogClose" src="/s.gif" />
+                   <h2 id="inlineEditDialogTitle">Name Change Box</h2>
+               </div>
+            </div>
+            <div class="middle">
+                <div class="innerContent" id="InlineEditDialogContent">
+                    <div class="activeField">
+                        <div class="inlineEditCompoundDiv" style="text-align:left;max-height:450px; min-width:600px; overflow-y:auto;overflow-x:hidden;color:#000">
+                            <table class="detailList changeBoxTable" style="width:500px;">
+                                <tr>
+                                    <td class="firstCol">Change Box Name</td>
+                                    <td >
+                                        <div class="requiredInput">
+                                            <div class="requiredBlock"></div>
+                                            <apex:inputText value="{!Change.Name}" styleClass="changeBoxName changeName1 required" /> 
+                                        </div>                                       
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="firstCol">Effective Date</td>
+                                    <td class="dataCol">
+                                        <div class="requiredInput">
+                                            <div class="requiredBlock"></div>
+                                            <apex:inputField value="{!Change.Effective_Date__c}" styleClass="eff-date effDate1 required"/>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div style="width:300px;height:30px;margin:35px auto 10px;">
+                                <a href="" class="btn1" onclick="checkChangeBoxName();">
+                                    <span class="tabC">
+                                        <span class="tabL"></span>
+                                            Save
+                                        <span class="tabR"></span>
+                                    </span>
+                                </a>
+                                
+                                <a href="" class="btn1" onclick="closePopChangeBox();">
+                                    <span class="tabC">
+                                        <span class="tabL"></span>
+                                            Cancel
+                                        <span class="tabR"></span>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+       <div id="InlinEditDialog2" class="overlayDialog inlineEditDialog" style="max-width:800px; display:block;left:400px; top:90px;visibility:hidden;">
+            <div class="topRight">
+               <div class="topLeft">
+                   <img id="InlineEditDialogX" onmouseover="this.className='dialogCloseOn'" onmouseout="this.className='dialogClose'" onclick="closeSubmitChangeBox()" class="dialogClose" src="/s.gif" />
+                   <h2 id="inlineEditDialogTitle">Name Change Box</h2>
+               </div>
+            </div>
+            <div class="middle">
+                <div class="innerContent" id="InlineEditDialogContent">
+                    <div class="activeField">
+                        <div class="inlineEditCompoundDiv" style="text-align:left;max-height:450px; min-width:600px; overflow-y:auto;overflow-x:hidden;color:#000">
+                            <span class="hintInfor">
+                                <apex:outputPanel rendered="{!LOWER(Config.Use_Approval_Process__c) == 'yes'}">
+                                    SUBMIT CHANGES? Submitting changes will lock the record and send an approval request to {!Config.Approver__r.Name}, When the changes are approved, they will be set to be made.
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!LOWER(Config.Use_Approval_Process__c) == 'no'}" >
+                                    SUBMIT CHANGES? There is not a Territory Approver set up. Submitting changes will lock the record and start making the defined changes.
+                                </apex:outputPanel> 
+                            </span>
+                             <table class="detailList changeBoxTable" style="width:500px;margin-top:20px;">
+                                <tr>
+                                    <td class="firstCol">Change Box Name</td>
+                                    <td >
+                                        <div class="requiredInput">
+                                            <div class="requiredBlock"></div>
+                                            <apex:inputText value="{!Change2.Name}" styleClass="changeBoxName changeName2 required" /> 
+                                        </div>                                       
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="firstCol">Effective Date</td>
+                                    <td class="dataCol">
+                                        <div class="requiredInput">
+                                            <div class="requiredBlock"></div>
+                                            <apex:inputField value="{!Change2.Effective_Date__c}" styleClass="eff-date effDate2 required"/>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div style="width:300px;height:30px;margin:35px auto 10px;">
+                                <a href="" class="btn1" onclick="checkChangeBoxName2();"> 
+                                    <span class="tabC">
+                                        <span class="tabL"></span>
+                                            Save
+                                        <span class="tabR"></span>
+                                    </span>
+                                </a>
+                                <a href="" class="btn1" onclick="closeSubmitChangeBox();">
+                                    <span class="tabC">
+                                        <span class="tabL"></span>
+                                            Cancel
+                                        <span class="tabR"></span>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+        <div id="dialog-message" >
+            <p style="margin:10px auto;"></p>
+        </div>
+        <div class="overlayBackground" id="background" style="width:3289px; height:1293px; display:none;position:fixed;"></div>
+        <script type="text/javascript">
+            $(function(){
+                $('div[class="requiredFields"]').find('select').remove();
+                $('div[class="requiredFields"]').find(':input:not(":hidden")').addClass('requiredFields');
+                
+                $('.nameKeyWord').focus(function(){
+                    if($(this).val() == 'Name')
+                    {
+                        $(this).css('color', 'black');
+                        $(this).val('');
+                    }
+                });
+
+                $('.nameKeyWord').blur(function(){
+                    if($(this).val() == '')
+                    {
+                        $(this).css('color', '#ccc');
+                        $(this).val('Name');
+
+                    }
+                });
+
+                $('.numberKeyWord').focus(function(){
+                    if($(this).val() == 'Account Number')
+                    {
+                        $(this).css('color', 'black');
+                        $(this).val('');
+                    }
+                });
+
+                $('.numberKeyWord').blur(function(){
+                    if($(this).val() == '')
+                    {
+                        $(this).css('color', '#ccc');
+                        $(this).val('Account Number');
+
+                    }
+                });
+
+                $('.countryKeyWord').focus(function(){
+                    if($(this).val() == 'Account Country')
+                    {
+                        $(this).css('color', 'black');
+                        $(this).val('');
+                    }
+                });
+
+                $('.countryKeyWord').blur(function(){
+                    if($(this).val() == '')
+                    {
+                        $(this).css('color', '#ccc');
+                        $(this).val('Account Country');
+
+                    }
+                });
+
+                $('.stateKeyWord').focus(function(){
+                    if($(this).val() == 'Account State')
+                    {
+                        $(this).css('color', 'black');
+                        $(this).val('');
+                    }
+                });
+
+                $('.stateKeyWord').blur(function(){
+                    if($(this).val() == '')
+                    {
+                        $(this).css('color', '#ccc');
+                        $(this).val('Account State');
+
+                    }
+                });
+
+                $('.cityKeyWord').focus(function(){
+                    if($(this).val() == 'Account City')
+                    {
+                        $(this).css('color', 'black');
+                        $(this).val('');
+                    }
+                });
+
+                $('.cityKeyWord').blur(function(){
+                    if($(this).val() == '')
+                    {
+                        $(this).css('color', '#ccc');
+                        $(this).val('Account City');
+                    }
+                });
+
+                if($('.tname').val() == '')
+                {
+                    $('.tname').focus();
+                }
+                
+                if({!JSENCODE(IsShowSavePop)} == '1') 
+                {
+                    openPopChangeBox();
+                } 
+
+                if({!JSENCODE(IsShowSubmitPop)} == '1')
+                {
+                    openSubmitChangeBox();
+                }
+                
+                $('.deleteIcon').click(function(){
+                    var index = $(this).closest('li').attr('id');
+                    $(":hidden[id$='removedIndex']").val(index);
+                    blockScreen();
+                    $(this).closest('li').remove();
+                    removeTerritory();    
+                });
+                
+                $('.tab-ul-left .tabBox').each(function(){
+                    var territoryId = $(this).attr('id');
+                    if(territoryId == '{!JSENCODE(Territory.Id)}')
+                    {
+                        var index = $('.tab-ul-left .tabBox').index($(this));
+                        $(":hidden[id$='territoryIndex']").val(index);
+                        $(this).addClass('tab-current');
+                    }
+                });
+
+                
+                $('.tab-ul-left .tabBox').mouseover(function(){
+                    if (!$(this).hasClass('tab-current')) 
+                    {
+                        $(this).addClass('tab-current');
+                    };                
+                }).mouseout(function(){
+                    if($(this).attr('id') == '{!JSENCODE(Territory.Id)}')
+                    {
+                        if (!$(this).hasClass('tab-current')) 
+                        {
+                            $(this).addClass('tab-current');
+                        };    
+                    }
+                    else
+                    {
+                        if ($(this).hasClass('tab-current')) 
+                        {
+                            $(this).removeClass('tab-current');
+                        };
+                    } 
+                }).click(function(){
+                    blockScreen();
+                    var index = $('.tab-ul-left .tabBox').index($(this));
+                    $(":hidden[id$='territoryIndex']").val(index);
+                    editTerritory();
+                });
+
+                $('.drag').draggable({
+                    revert:"invalid",
+                    cursor: "crosshair",
+                    delay:300,
+                    start: function(event, ui)
+                    {                    
+                        $(this).closest('tr').find('td').css('background-color', '#15335c');
+                        var assignmentIndex = $(this).closest('tr').attr('id');
+                        $(":hidden[id$='assignmentIndex']").val(assignmentIndex);
+                    },
+                    stop: function (event, ui)
+                    {
+                        $(this).closest('tr').find('td').css('background-color', '#f3f3f3');
+                    }
+                });
+
+                $('.tabBox').droppable({
+                    accept: ".drag",
+                    over:function(event, ui)
+                    {    
+                        $(this).unbind("mouseover");
+                        $(this).unbind("mouseout");
+                        var territoryId = $(this).attr('id');                   
+                        if('{!JSENCODE(Territory.Id)}' == territoryId)
+                        {                           
+                            $(".drag").draggable("option", "revert", true);
+                        }
+                        else
+                        {
+                            $(this).addClass("tab-current");
+                        }
+                    }, 
+                    out: function(event, ui)
+                    {
+                        var territoryId = $(this).attr('id');
+                        if('{!JSENCODE(Territory.Id)}' != territoryId)
+                        {
+                            $(this).removeClass("tab-current");
+                        }    
+                    },                                                                        
+                    drop: function(event, ui)
+                    {
+                        $(this).bind({
+                            mouseover:function(){
+                                if (!$(this).hasClass('tab-current')) 
+                                {
+                                    $(this).addClass('tab-current');
+                                };
+                            }, mouseout:function(){
+                                if($(this).attr('id') == '{!JSENCODE(Territory.Id)}')
+                                {
+                                    if (!$(this).hasClass('tab-current')) 
+                                    {
+                                        $(this).addClass('tab-current');
+                                    };    
+                                }
+                                else
+                                {
+                                    if ($(this).hasClass('tab-current')) 
+                                    {
+                                        $(this).removeClass('tab-current');
+                                    };
+                                }
+                            }
+                        });
+                        var territoryId = $(this).attr('id');
+                        $(":hidden[id$='territoryId']").val(territoryId);
+                        $(".drag").draggable("option", "revert", true);
+                        if('{!JSENCODE(Territory.Id)}' != territoryId)
+                        {
+                            $(this).addClass("tab-current");
+                            blockScreen();
+                            dragAssignment();
+                        }                                          
+                    }
+                });
+
+                var activePanel = $(":hidden[id$='extendedPanelId']").val();
+                if(activePanel == 'accountCriteriaH')
+                {
+                    $("#accordion").accordion({ collapsible: true, heightStyle: "content", active : 0});
+                }
+                else if(activePanel == 'createAssignmentH')
+                {
+                    $("#accordion").accordion({ collapsible: true, heightStyle: "content", active : 1});
+                }
+                else if(activePanel == 'createExceptionAccountH')
+                {
+                    $("#accordion").accordion({ collapsible: true, heightStyle: "content", active : 2});
+                }
+                else
+                {
+                    $(":hidden[id$='extendedPanelId']").val('accountCriteriaH');
+                    $("#accordion").accordion({ collapsible: true, heightStyle: "content", active : false});
+                }
+            }); 
+            
+            function checkPostalCodeValid()
+            {
+                var isValid = true;
+                var startPostalCode = $(":hidden[id$='assignmentPostalStart']").val();
+                var endPostalCode = $(":hidden[id$='assignmentPostalEnd']").val();
+                $(".postalStart").each(function(){
+                    if(startPostalCode != '' && $(this).val().toLowerCase() < startPostalCode.toLowerCase())
+                    {
+                        isValid = false;
+                    }
+                });
+                $(".postalEnd").each(function(){
+                    if(endPostalCode != '' && $(this).val().toLowerCase() > endPostalCode)
+                    {
+                        isValid = false;
+                    }
+                });
+                return isValid;
+            }
+            
+            function calculateTerritoryFields()
+            {
+                if('{!JSENCODE(Change.Name)}' == null || '{!JSENCODE(Change.Name)}' == '')
+                {
+                    alertMsg('Please click "Save" to save the changes first, then click this button to calculate.');
+                }
+                else
+                {
+                    $("#dialog-message").find('p').html('What If’s will be calculated and the results emailed to you. Click OK to run the What If’s or Cancel to return to the Territory Management page.<br/> <br/><b>Note: What If’s are calculated on all Opportunities in the territory assignment. This is the case even if the Territory Setup doesn’t include Opportunities.</b>');
+                    $("#dialog-message").dialog({
+                        modal:true,
+                        width:500,
+                        buttons: {
+                            OK: function()
+                            {
+                                $(this).dialog('close');
+                                blockScreen();
+                                $(":hidden[id$='extendedPanelId']").val('');
+                                calculateTerritoryFieldsFun();
+                            },
+                            Cancel : function()
+                            {
+                                $(this).dialog('close');
+                            }
+                        }   
+                    });
+                }     
+            }           
+        </script>
+    </apex:form>
+    <script type="text/javascript">
+        $(function(){
+            var selectedIds = '{!JSENCODE(selectedHidden)}';            
+            if(selectedIds != null && selectedIds != '')
+            {
+                $('.selectElementLeft option').each(function(){
+                    if(selectedIds.indexOf($(this).val()) >= 0)
+                    {    
+                        $('.selectElementRight').append("<option value='" + $(this).val() + "'>" + $(this).text() + "</option>");
+                        $(this).remove();
+                    }
+                });
+            } 
+        });
+
+        function populateCriteriaValue(str)
+        {
+            var index = $(":hidden[id$='criteriaIndex']").val();
+            $('.newCriteriaValue').eq(parseInt(index)).val(str);
+        }
+
+        function populateCriteriaValueForEdit(str)
+        {
+            $('.editCriteriaValue').val(str);
+        }
+
+        function redirectToNewCriteriaValues(aElement) 
+        {
+            var criteriaField = $(aElement).closest('tr').find('td').eq(0).find('option:selected').text();
+            var url = '/apex/TM_CriteriaValues?fieldLabel=' + criteriaField + '&isEdit=0&fieldValue=';
+            window.open(url, 'popup', 'fullscreen=no, height=350px, width=600px, top=200, left=490, scrollbars=1');
+        }
+
+        function redirectToEditCriteriaValues(aElement)
+        {
+            var criteriaField = $(aElement).closest('tr').find('td').eq(0).find('option:selected').text();
+            var valueStr = $(aElement).closest('span').prev().val();
+            var url = '/apex/TM_CriteriaValues?fieldLabel=' + criteriaField + '&isEdit=1&fieldValue=' + valueStr;
+            window.open(url, 'popup', 'fullscreen=no, height=350px, width=600px, top=200, left=490, scrollbars=1');
+        }
+
+        function changeField(aElement)
+        {
+            var index = $(aElement).closest('tr').attr('id');
+            $(":hidden[id$='criteriaIndex']").val(index);
+            $(aElement).closest('tr').find('input:text').val('');
+        }
+
+        function editCriteria(aElement)
+        {
+            blockScreen();
+            var index = $(aElement).closest('tr').attr('id');
+            $(":hidden[id$='criteriaIndex']").val(index);
+            $(":hidden[id$='extendedPanelId']").val('accountCriteriaH');
+            editAccountCriteriaFun();
+        }
+
+        function deleteCriteria(aElement)
+        {
+            blockScreen();
+            var criteriaIndex = $(aElement).closest('tr').attr('Id');
+            $(":hidden[id$='criteriaIndex']").val(criteriaIndex);
+            $(":hidden[id$='extendedPanelId']").val('accountCriteriaH');
+            deleteAccountCriteriaFun();
+        }
+
+        function deleteNewCriteria(aElement)
+        {
+            var criteriaIndex = $(aElement).closest('tr').attr('Id');
+            $(":hidden[id$='criteriaIndex']").val(criteriaIndex);
+            deleteNewCriteriaFun();
+        }
+
+        function addCriteria(ev)
+        {
+            var e = (ev) ? ev : window.event;
+            blockScreen();
+            $(":hidden[id$='extendedPanelId']").val('accountCriteriaH');
+            $('#accordion').accordion({ collapsible : true, heightStyle: "content", active : 0 });
+            addAccountCriteriaFun();
+            if(window.event)
+            {
+                e.cancelBubble = true;
+            }
+            else
+            {
+                e.stopPropagation();
+            }
+        }
+
+        function checkChangeBoxName()
+        {
+            if($(".theForm").valid())
+            {
+                document.getElementById("InlinEditDialog1").style.visibility = 'hidden';
+                document.getElementById("background").style.display = 'none';
+                blockScreen();
+                $(":hidden[id$='extendedPanelId']").val('');
+                saveChangeBoxFun();
+            }
+        }
+
+        function checkChangeBoxName2()
+        {
+            if($(".theForm").valid())
+            {
+                document.getElementById("InlinEditDialog2").style.visibility = 'hidden';
+                document.getElementById("background").style.display = 'none';
+                blockScreen();
+                $(":hidden[id$='extendedPanelId']").val('');
+                submit();        
+            }
+        }
+
+        function delAssignment(aElement)
+        {
+            blockScreen();
+            var assignmentIndex = $(aElement).closest('tr').attr('Id');
+            $(":hidden[id$='assignmentIndex']").val(assignmentIndex);
+            delAssignmentFun();
+        }
+
+        function editAssignment(aElement)
+        {
+            blockScreen();
+            var assignmentIndex = $(aElement).closest('tr').attr('Id');
+            $(":hidden[id$='assignmentIndex']").val(assignmentIndex);
+            editAssignmentFun();
+        }
+
+        function saveBreakAssignment()
+        {
+            if(checkPostalCodeValid())
+            {
+                saveBreakAssignmentFun(); 
+            }
+            else
+            {
+                alertMsg('The new postal code you entered must between the previous postal start and previous postal end.');
+            }         
+        }
+
+        
+        function checkAssignmentCSV()
+        {
+            var isValid = true;
+            if($('.assignmentType').val() == 'Paste Assignments')
+            {
+                var assignmentCsvValue = $(".assignmentCsv").val();
+                if(assignmentCsvValue != null && assignmentCsvValue != '')
+                {
+                    var assignmentCSV = '';
+                    var assignments = new Array();
+                    assignments = assignmentCsvValue.split('\n');
+                    if(assignments.length > 400)
+                    {
+                        alertMsg('Assignments can\'t be greater than 400.')
+                        isValid = false;
+                    }
+                    else
+                    {
+                        var reg = new RegExp('("[^"]*("{2})*[^"]*")*[^,]*,', 'g');                
+                        for(var i = 0; i < assignments.length; i++)
+                        {
+                            var count = 0;
+                            if(assignments[i].trim().length > 0)
+                            {
+                                var assignment = assignments[i] + ',';
+                                var arr;
+                                while((arr=reg.exec(assignment)) != null)
+                                {
+                                    count++;
+                                }
+                                if(count == 1) 
+                                {
+                                    assignmentCSV += assignments[i] + ',,,\n';
+                                }
+                                else if(count == 2)
+                                {
+                                    assignmentCSV += assignments[i] + ',,\n';
+                                }
+                                else if(count == 3)
+                                {
+                                    assignmentCSV += assignments[i] + ',\n';
+                                }
+                                else if(count == 4)
+                                {
+                                    assignmentCSV += assignments[i] + '\n';
+                                }
+                                else 
+                                {
+                                    alertMsg('Not Valid');
+                                    isValid = false;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                alertMsg('The assignments you entered have invalid data.');
+                                $('.assignmentCsv').focus();
+                                isValid = false;
+                                break;
+                            }    
+                        }
+                        if(isValid)
+                        {
+                            assignmentCSV = assignmentCSV.substring(0, assignmentCSV.length - 1);
+                            $('.assignmentCsv').val(assignmentCSV);
+                        }   
+                    }                    
+                }
+                else
+                {
+                    alertMsg('You need to paste some assignments.');
+                    isValid = false;
+                }
+            }
+            return isValid;            
+        }
+        
+        function saveCreateAssignment()
+        {
+            if(checkAssignmentCSV())
+            {
+                saveCreateAssignmentFun();
+            }
+        }
+
+        function saveCreateCriteria()
+        {
+            saveCreateCriteriaFun();
+        }
+
+        function changeAssignmentType(aElement)
+        {
+            if($(aElement).val() == 'Type Assignments')
+            {               
+                $(".singleAssignmentPanel").css('display', 'block');
+                $(".multipleAssignmentPanel").css('display', 'none');
+                $(".multipleAssignmentPanel").find('textarea').val('');
+            }
+            else
+            {
+                
+                $(".multipleAssignmentPanel").css('display', 'block');
+                $(".singleAssignmentPanel").css('display', 'none');
+                $(".singleAssignmentPanel").find('input:text').val('');
+            }
+        }
+        
+        function setSelectedHidden()
+        {
+            var selectedData = $("[id$='selectedHidden']");
+            var ids = '';
+            $('.selectElementRight option').each(function(){
+                ids += $(this).val() + ';';
+            });
+            if(ids != '')
+            {
+                ids = ids.substring(0, ids.length - 1);
+                selectedData.val(ids);
+                return true;
+            }
+            else
+            {
+                alertMsg('Please select at least one territory to proceed.');
+                return false;
+            }                        
+        }
+        function addPopTerritories()
+        {
+            if(setSelectedHidden())
+            {
+                addPopTerritoriesFun();
+            } 
+        }
+
+        function delExceptionAccount(aElement)
+        {
+            blockScreen();
+            var exceptionAccountIndex = $(aElement).closest('tr').attr('Id');
+            $(":hidden[id$='exceptionAccountIndex']").val(exceptionAccountIndex);
+            $(":hidden[id$='extendedPanelId']").val('createExceptionAccountH');
+            delExceptionAccountFun();
+        }
+
+        function createExceptionAccount(ev, aElement)
+        {
+            var e = (ev) ? ev : window.event;
+            $("#accordion").accordion({ collapsible : true, heightStyle: "content", active : 2});
+            $(":hidden[id$='extendedPanelId']").val('createExceptionAccountH');
+            blockScreen();
+            createExceptionAccountFun();
+            if(window.event)
+            {
+                e.cancelBubble = true;
+            }
+            else
+            {
+                e.stopPropagation();
+            }
+        }
+
+        function delAssignment(aElement)
+        {
+            blockScreen();
+            var assignmentIndex = $(aElement).closest('tr').attr('Id');
+            $(":hidden[id$='assignmentIndex']").val(assignmentIndex);
+            $(":hidden[id$='extendedPanelId']").val('createAssignmentH');
+            delAssignmentFun();
+        }
+
+        function editAssignment(aElement)
+        {
+            blockScreen();
+            var assignmentIndex = $(aElement).closest('tr').attr('Id');
+            $(":hidden[id$='assignmentIndex']").val(assignmentIndex);
+            $(":hidden[id$='extendedPanelId']").val('createAssignmentH');
+            editAssignmentFun();
+        }
+
+        function breakAssignment(aElement)
+        {
+            blockScreen();
+            var assignmentIndex = $(aElement).closest('tr').attr('Id');
+            $(":hidden[id$='assignmentIndex']").val(assignmentIndex);
+            $(":hidden[id$='extendedPanelId']").val('createAssignmentH');
+            breakAssignmentFun();
+        }
+
+        function createAssignment(ev)
+        {
+            var e = (ev) ? ev : window.event; 
+            $("#accordion").accordion({ collapsible : true, heightStyle: "content", active : 1});
+            $(":hidden[id$='extendedPanelId']").val('createAssignmentH');
+            blockScreen();
+            createAssignmentFun();
+            if(window.event)
+            {
+                e.cancelBubble = true;
+            }
+            else
+            {
+                e.stopPropagation();
+            }
+        }
+
+        function saveTerritory()
+        {
+            var isValid = true;
+            
+            $(':input[class*="requiredFields"]').each(function(){
+                if($(this).val() == '')
+                {
+                    isValid = false;
+                }
+
+            });
+
+            if(isValid)
+            {
+                blockScreen();
+                saveTerritoryFun();
+            }
+            else
+            {
+                alertMsg('You must enter all required fields.');
+            }
+        }
+
+        function addTerritories()
+        {
+            blockScreen();
+            addExistingTerritory();
+        }
+
+        function blockScreen()
+        {
+            $.blockUI({ message: '<img src=\'/img/loading.gif\' style=\'margin-right:10px;\' id=\'statusImg\'/>' + 'Waiting...', css: { border: '3px solid #CFEEF8', padding:'10px' } });            
+        }
+
+        function closeSubmitChangeBox()
+        {
+            document.getElementById("InlinEditDialog2").style.visibility = 'hidden';
+            document.getElementById("background").style.display = 'none';
+        }
+
+        function openSubmitChangeBox()
+        {
+            removeClassForElements($(".changeName1"), 'required');
+            addClassForElements($(".changeName2"), 'required');
+            removeClassForElements($(".effDate1"), 'required');
+            addClassForElements($(".effDate2"), 'required');
+            document.getElementById("InlinEditDialog2").style.visibility = 'visible';
+            document.getElementById("background").style.display = 'block';
+            $(":hidden[id$='isShowSubmitPop']").val('0');
+        }
+
+        function checkAsisignmentWithSaveChangeBox()
+        {
+            blockScreen();
+            checkAsisignmentWithSaveChangeBoxFun();
+        }
+
+        function checkAsisignmentWithSubmittedChangeBox()
+        {
+            blockScreen();
+            checkAsisignmentWithSubmittedChangeBoxFun();
+        }
+
+        function closePopChangeBox()
+        {
+            document.getElementById("InlinEditDialog1").style.visibility = 'hidden';
+            document.getElementById("background").style.display = 'none';
+        }
+
+        function openPopChangeBox()
+        {
+            removeClassForElements($(".changeName2"), 'required');
+            addClassForElements($(".changeName1"), 'required');
+            removeClassForElements($(".effDate2"), 'required');
+            addClassForElements($(".effDate1"), 'required');
+            document.getElementById("InlinEditDialog1").style.visibility = 'visible';
+            document.getElementById("background").style.display = 'block';
+            $(":hidden[id$='isShowSavePop']").val('0');
+        }
+
+
+        function addClassForElements(elements, className)
+        {
+            elements.each(function(){
+                if(!$(this).hasClass(className))
+                {
+                    $(this).addClass(className);
+                }
+            });
+        }
+        
+        function removeClassForElements(elements,className)
+        {
+            elements.each(function(){
+                if($(this).hasClass(className))
+                {
+                    $(this).removeClass(className);
+                }
+            })
+        }
+        
+        function closePop()
+        {
+            document.getElementById("InlinEditDialog").style.visibility = "hidden";
+            document.getElementById("background").style.display = "none";
+        }
+
+        function showPop()
+        {
+            $.unblockUI();
+            document.getElementById("InlinEditDialog").style.visibility = "visible";
+            document.getElementById("background").style.display = "block";   
+        }
+        
+        function showPop1()
+        {
+            $.unblockUI();
+            document.getElementById("InlinEditDialog1").style.visibility = "visible";
+            document.getElementById("background").style.display = "block";
+        }
+
+        function alertMsg(msg)
+        {
+            $("#dialog-message").find('p').html(msg);
+            $("#dialog-message").dialog({
+                modal:true,
+                width:500,
+                buttons: {
+                    OK: function()
+                    {
+                        $(this).dialog("close");
+                    }
+                }   
+            });
+        }
+    </script> 
+</apex:page>

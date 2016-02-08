@@ -1,0 +1,162 @@
+<apex:page controller="TM_ChangeBoxDetailController" showHeader="true" sidebar="false">
+    <apex:stylesheet value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/css/jquery-ui.css')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery-1.7.2.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery-ui.js')}" />
+   
+    <style type="text/css">
+        .overlayBackground
+        {
+            background-color: black;
+        }
+        .territoryHeader
+        {
+            color:#4A4A56;
+            font-size:14px;
+            line-height:30px;
+            font-weight:bold;
+            margin-left:10px;
+        }
+        .sectionHeader
+        {
+            color:#4A4A56;
+            font-size:12px;
+            line-height:15px;
+            font-weight:bold;
+            margin-left:10px;
+        }
+    </style>
+    <script type="text/javascript">
+            function setAccordions()
+            {
+                var territoryCount = "{!TerritoryInfos.size}";
+                if(territoryCount > 0)
+                {
+                    $("#accordion1" ).accordion({ collapsible: true, heightStyle: "content"});
+                    for(var n = 2; n <= territoryCount; n++)
+                    {
+                        $("#accordion" + n ).accordion({ collapsible: true, active: false, heightStyle: "content"});
+                    }
+                }               
+            }
+
+            function showCommentPanel()
+            {
+                document.getElementById("inlineEditDialog").style.visibility = "visible";
+                document.getElementById("background").style.display = "block";
+            }
+
+            function closeCommentPop()
+            {
+                document.getElementById("inlineEditDialog").style.visibility = "hidden";
+                document.getElementById("background").style.display = "none";
+            }
+    </script>
+    <apex:form > 
+            <apex:sectionHeader title="Change Set" subTitle="{!ChangeSet.Name}"/>              
+        <apex:pageBlock >
+            <apex:pageBlockButtons >
+                <apex:outputPanel rendered="{!AND(IsShowApproveRejectButton, OR(IsSystemAdmin, IsCurrentUserApprover))}">
+                    <input type="button" value="Approve / Reject" class="btn" onclick="showCommentPanel();"/>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!NOT(AND(IsShowApproveRejectButton, OR(IsSystemAdmin, IsCurrentUserApprover)))}">
+                    <input type="button" value="Approve / Reject" class="btnDisabled"/>
+                </apex:outputPanel>
+            </apex:pageBlockButtons>
+
+            <apex:variable var="i" value="{!1}"/>
+            <apex:repeat value="{!TerritoryInfos}" var="territoryInfo">
+                <div id="accordion{!CEILING(i)}">
+                    <h3>{!territoryInfo.Territory.Name}</h3>
+                    <div>
+                        <apex:pageBlockSection >
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Owner"></apex:outputLabel>
+                                <apex:outputText value="{!territoryInfo.Territory.Owner}" />
+                            </apex:pageBlockSectionItem> 
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Effective Date" > </apex:outputLabel>
+                                <apex:outputText value="{!territoryInfo.Territory.EffectiveDate}"></apex:outputText>
+                            </apex:pageBlockSectionItem>   
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Descption"></apex:outputLabel>
+                                <apex:outputText value="{!territoryInfo.Territory.Description}" />
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <apex:pageBlockSection columns="1" collapsible="false" >
+                            <apex:facet name="header">
+                                <span class="sectionHeader">Account Criteria</span>
+                            </apex:facet>
+                            <apex:pageBlockTable value="{!territoryInfo.AccountCriteria}" var="criteria" rendered="{!territoryInfo.AccountCriteria.size > 0}">
+                                <apex:column headerValue="Field" value="{!criteria.Label}"> </apex:column>
+                                <apex:column headerValue="Operator" value="{!criteria.Operator}"> </apex:column>
+                                <apex:column headerValue="Value" value="{!criteria.Value}"> </apex:column>
+                            </apex:pageBlockTable>
+                            <apex:outputPanel rendered="{!territoryInfo.AccountCriteria.size == 0}">
+                                <h4>No Account Criteria.</h4>
+                            </apex:outputPanel>
+                        </apex:pageBlockSection>
+                        <apex:pageBlockSection columns="1" collapsible="false" >
+                            <apex:facet name="header">
+                                <span class="sectionHeader">Assignments</span>
+                            </apex:facet>
+                            <apex:pageBlockTable value="{!territoryInfo.Assignments}" var="assignment" rendered="{!territoryInfo.Assignments.size > 0}">
+                                <apex:column headerValue="Country" value="{!assignment.Country}"> </apex:column>
+                                <apex:column headerValue="State / Province" value="{!assignment.State}"> </apex:column>
+                                <apex:column headerValue="Postal Start" value="{!assignment.PostalStart}"> </apex:column>
+                                <apex:column headerValue="Postal End" value="{!assignment.PostalEnd}"> </apex:column>
+                            </apex:pageBlockTable>
+                            <apex:outputPanel rendered="{!territoryInfo.Assignments.size == 0}">
+                                <h4>No Assignments.</h4>
+                            </apex:outputPanel>
+                        </apex:pageBlockSection>
+                        <apex:pageBlockSection columns="1" collapsible="false" >
+                            <apex:facet name="header">
+                                <span class="sectionHeader">Exception Accounts</span>
+                            </apex:facet>
+                            <apex:pageBlockTable value="{!territoryInfo.ExceptionAccounts}" var="account" rendered="{!territoryInfo.ExceptionAccounts.size > 0}">
+                                <apex:column headerValue="Name" value="{!account.Name}"> </apex:column>
+                                <apex:column headerValue="Territory" value="{!account.Territory}"> </apex:column>
+                                <apex:column headerValue="Country" value="{!account.Country}"> </apex:column>
+                                <apex:column headerValue="Postal Code" value="{!account.State}"> </apex:column>
+                                <apex:column headerValue="Country" value="{!account.PostalCode}"> </apex:column>
+                            </apex:pageBlockTable>
+                            <apex:outputPanel rendered="{!territoryInfo.ExceptionAccounts.size == 0}">
+                                <h4>No Exception Accounts.</h4>
+                            </apex:outputPanel>
+                        </apex:pageBlockSection>
+                    </div>
+                </div>
+                <apex:variable value="{!i+1}" var="i"/>
+            </apex:repeat>
+        </apex:pageBlock>
+        <div id="inlineEditDialog" class="overlayDialog inlineEditDialog" style="max-width: 500px;min-width:350px; display: block; left: 30%; top: 25%;visibility:hidden">
+            <div class="topRight">
+                <div class="topLeft">
+                    <img id="inlineEditDialogX" onmouseover="this.className='dialogCloseOn'" onmouseout="this.className='dialogClose'" onclick="closeCommentPop()" class="dialogClose" src="/s.gif" />
+                    <h2 id="inlineEditDialogTitle">Approval/Reject Approval Request</h2>
+                </div>
+            </div>
+            <div class="middle">
+                <div class="innerContent" id="inlineEditDialogContent">
+                    <div class="activeField">
+                        <div class="inlineEditCompoundDiv" style="text-align:left">
+                            <apex:pageBlock >
+                                <apex:pageBlockSection columns="1">
+                                    <apex:inputTextarea value="{!ChangeSet.Comment}" style="width: 340px; height: 120px;"/>
+                                </apex:pageBlockSection>   
+                            </apex:pageBlock>
+                        </div>
+                    </div>
+                    <div id="inlineEditDialog_buttons" class="buttons">
+                        <apex:commandButton onclick="closeCommentPop();return true;" action="{!approveChangeBox}" value="Approve"/>
+                        <apex:commandButton onclick="closeCommentPop();return true;" action="{!rejectChangeBox}" value="Reject"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="overlayBackground" id="background" style="width:3289px; height:1293px; display:none; position:fixed"></div>
+        <script type="text/javascript">
+            setAccordions();        
+        </script>
+    </apex:form>
+</apex:page>
