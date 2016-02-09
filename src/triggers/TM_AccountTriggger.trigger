@@ -13,11 +13,15 @@ trigger TM_AccountTriggger on Account (before update, after insert, after update
         TM_AccountTriggerHandler.unsyncAccountRelatedObjectOwner(Trigger.newMap, Trigger.oldMap);
         TM_AccountTriggerHandler.calculateTerritoryFieldsForUpdate(Trigger.newMap, Trigger.oldMap);
         TM_AccountTriggerHandler.shareAccountWithTerritoryMembersForUpdate(Trigger.new, Trigger.oldMap);
+        if(!System.isFuture() && !System.isBatch()) {
+            TM_AccountTriggerHandler.getGeolocationCoordinates(Trigger.newMap.keySet()); 
+        } 
     }
     else if(Trigger.isAfter && Trigger.isInsert)
     {
         TM_AccountTriggerHandler.fireUpdateTrigger(true, Trigger.newMap, null);
         TM_AccountTriggerHandler.calculateTerritoryFieldsForInsert(Trigger.newMap);
+        //TM_AccountTriggerHandler.getGeolocationCoordinates(Trigger.newMap, null);
         //TM_AccountTriggerHandler.shareAccountWithTerritoryMembersForInsert(Trigger.new);
     }
     else if(Trigger.isAfter && Trigger.isDelete)

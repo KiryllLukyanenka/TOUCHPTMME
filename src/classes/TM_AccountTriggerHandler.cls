@@ -656,14 +656,17 @@ public class TM_AccountTriggerHandler
 		}   
 	}  
 	
-	//@future (callout=true)
-	public static void getGeolocationCoordinates(Map<Id, List<Account>> acctNewMap, Map<Id, List<Account>> oldAcctMap) {
+	
+	@future (callout=true)
+	public static  void getGeolocationCoordinates(Set<Id> newAccIds) {
 		// gather account info
 		List<Account> accounts = [
 			SELECT BillingCity, BillingCountry, BillingPostalCode, BillingState, BillingStreet,
 				BillingLatitude, BillingLongitude
 			FROM Account 
-			WHERE id IN :acctNewMap.keySet()];
+			WHERE id IN :newAccIds];
+
+			system.debug('>>>>>>>>> accounts' + accounts);
 
 		List<Account> accountsToUpdate = new List<Account>();
 
@@ -681,6 +684,8 @@ public class TM_AccountTriggerHandler
 			if (acc.BillingCountry != null)
 				address += acc.BillingCountry;
 
+			system.debug('>>>>>>>>> address' + address);
+
 			address = EncodingUtil.urlEncode(address, 'UTF-8');
 
 			// build callout
@@ -693,6 +698,8 @@ public class TM_AccountTriggerHandler
 			try {
 				// callout
 				HttpResponse res = h.send(req);
+
+				system.debug('>>>>>>>>> res' + res);
 
 				// parse coordinates from response
 				JSONParser parser = JSON.createParser(res.getBody());
@@ -713,6 +720,9 @@ public class TM_AccountTriggerHandler
 					}
 				}
 
+				system.debug('>>>>>>>>> latitude' + latitude);
+				system.debug('>>>>>>>>> longitude' + longitude);
+
 				// update coordinates if we get back
 				if (latitude != null) {
 					acc.BillingLatitude  = latitude;
@@ -721,9 +731,11 @@ public class TM_AccountTriggerHandler
 				}
 
 			} catch (Exception e) {
+				system.debug('>>>>>>>>> Exception' + e);
 			}
 		}
 
+		system.debug('>>>>>>>>> accountsToUpdate' + accountsToUpdate);
 		update accountsToUpdate;
 	}
 
