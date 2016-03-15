@@ -31,7 +31,7 @@ public class TM_OrganizationSettings
     public static Territory_Config__c getTerritoryConfig()
     {
         Territory_Config__c config = new Territory_Config__c();
-        List<Territory_Config__c> configs = [select Id, Approver__c, Approver__r.Name, Billing_Shipping_Address__c, Catch_All_Territory_Name__c, Catch_All_Territory_Owner__c, Catch_All_Territory_Owner__r.Name, Include_Contacts__c, Include_Open_Activities__c, Include_Open_Opps__c, Schedule_Job_Id__c, Territory_Snapshots__c, Use_Approval_Process__c from Territory_Config__c order by LastModifiedDate desc limit 1];
+        List<Territory_Config__c> configs = [select Id, Approver__c, Approver__r.Name, Billing_Shipping_Address__c, Catch_All_Territory_Name__c, Catch_All_Territory_Owner__c, Catch_All_Territory_Owner__r.Name, Include_Contacts__c, Include_Open_Activities__c, Include_Open_Opps__c, Schedule_Job_Id__c, Territory_Snapshots__c, Use_Approval_Process__c, TerrMgmt__Account_Mapping_Status__c from Territory_Config__c order by LastModifiedDate desc limit 1];
         if(!configs.isEmpty())
         {
             config = configs[0];

@@ -563,10 +563,11 @@ public class TM_AccountTriggerHandler
 	
 	private static void calculateTerritoryFields(Map<String, List<Account>> acctMap, Map<String, List<Account>> oldAcctMap, List<Territory__c> territories)
 	{
+		
 		for(Territory__c territory : [select Id, Territory_Type__c, RecordTypeId, Name, Number_Of_Accounts__c, Number_of_Open_Opps__c, Closed_Revenue_YTD__c, Pipeline_Less_Than_Percent50__c, Pipeline_Greater_Than_Percent50__c from Territory__c where Id in :acctMap.keySet()])
 		{
 			List<Account> accounts = acctMap.get(territory.Id);
-			Decimal accountCount = territory.Number_Of_Accounts__c == null ? accounts.size() : territory.Number_Of_Accounts__c + accounts.size();
+			//Decimal accountCount = territory.Number_Of_Accounts__c == null ? accounts.size() : territory.Number_Of_Accounts__c + accounts.size();
 			Decimal openOpps = territory.Number_Of_Open_Opps__c == null ? 0 : territory.Number_Of_Open_Opps__c;
 			Decimal closedRevenue = territory.Closed_Revenue_YTD__c == null ? 0 : territory.Closed_Revenue_YTD__c;
 			Decimal pipeGT50 = territory.Pipeline_Greater_Than_Percent50__c == null ? 0 : territory.Pipeline_Greater_Than_Percent50__c;
@@ -581,10 +582,10 @@ public class TM_AccountTriggerHandler
 			if(oldAcctMap.containsKey(territory.Id))
 			{
 				List<Account> accts = oldAcctMap.get(territory.Id);
-				if(accountCount >= accts.size())
-				{
-					accountCount -= accts.size();
-				}    
+				//if(accountCount >= accts.size())
+				//{
+				//	accountCount -= accts.size();
+				//}    
 				for(Account acct : accts)
 				{
 					if(openOpps >= acct.Number_Of_Open_Opps__c)
@@ -606,7 +607,7 @@ public class TM_AccountTriggerHandler
 					}    
 				}
 			}
-			territory.Number_Of_Accounts__c = accountCount;
+			//territory.Number_Of_Accounts__c = accountCount;
 			territory.Number_of_Open_Opps__c = openOpps;
 			territory.Closed_Revenue_YTD__c = closedRevenue;
 			territory.Pipeline_Less_Than_Percent50__c = pipeLT50;
@@ -618,15 +619,15 @@ public class TM_AccountTriggerHandler
 		{
 			List<Account> accounts = oldAcctMap.get(territory.Id);
 			
-			Decimal accountCount = territory.Number_Of_Accounts__c == null ? 0 : territory.Number_Of_Accounts__c;
+			//Decimal accountCount = territory.Number_Of_Accounts__c == null ? 0 : territory.Number_Of_Accounts__c;
 			Decimal openOpps = territory.Number_Of_Open_Opps__c == null ? 0 : territory.Number_Of_Open_Opps__c;
 			Decimal closedRevenue = territory.Closed_Revenue_YTD__c == null ? 0 : territory.Closed_Revenue_YTD__c;
 			Decimal pipeLT50 = territory.Pipeline_Less_Than_Percent50__c == null ? 0 : territory.Pipeline_Less_Than_Percent50__c;
 			Decimal pipeGT50 = territory.Pipeline_Greater_Than_Percent50__c == null ? 0 : territory.Pipeline_Greater_Than_Percent50__c;
-			if(accountCount >= accounts.size())
-			{
-				accountCount -= accounts.size();
-			}
+			//if(accountCount >= accounts.size())
+			//{
+			//	accountCount -= accounts.size();
+			//}
 			for(Account acct : accounts)
 			{
 				if(openOpps >= acct.Number_of_Open_Opps__c)
@@ -647,59 +648,119 @@ public class TM_AccountTriggerHandler
 					pipeLT50 -= acct.Pipeline_LT_50__c;
 				}    
 			}
-			territory.Number_Of_Accounts__c = accountCount;
+			//territory.Number_Of_Accounts__c = accountCount;
 			territory.Number_of_Open_Opps__c = openOpps;
 			territory.Closed_Revenue_YTD__c = closedRevenue;
 			territory.Pipeline_Less_Than_Percent50__c = pipeLT50;
 			territory.Pipeline_Greater_Than_Percent50__c = pipeGT50;
 			territories.add(territory);
 		}   
-	}  
+	}
+
+	public static string getGeocodingAPIkey(String customSettingName) {
+		TerrMgmt__Google_Geocoding_API__c goecodingCustomSetting = TerrMgmt__Google_Geocoding_API__c.getValues('Default');
+		String geocodingAPIKey = goecodingCustomSetting.TerrMgmt__Geocoding_API_Key__c;
+		return geocodingAPIKey;
+	}
+	
+
+	public static void callBatch(Set<Id> newAccIds) {
+		List<Id> AccIds = new List<Id>(newAccIds);
+		TM_GeocodingUpdateBatch batch = new TM_GeocodingUpdateBatch(AccIds);
+		database.executebatch(batch, 100);
+	}
 	
 	
-	@future (callout=true)
-	public static  void getGeolocationCoordinates(Set<Id> newAccIds) {
-		// gather account info
+	public static void getGeolocationCoordinates(Set<Id> newAccIds) {
+
+		TerrMgmt__Territory_Config__c territoryConfig = [
+			SELECT TerrMgmt__Billing_Shipping_Address__c 
+			FROM TerrMgmt__Territory_Config__c 
+			LIMIT 1];
+		system.debug('>>>>>>>>> territoryConfig' + territoryConfig);
+
 		List<Account> accounts = [
 			SELECT BillingCity, BillingCountry, BillingPostalCode, BillingState, BillingStreet,
-				BillingLatitude, BillingLongitude
+				BillingLatitude, BillingLongitude, ShippingCity, ShippingCountry, ShippingPostalCode,
+				 ShippingState, ShippingStreet, ShippingLatitude, ShippingLongitude
 			FROM Account 
 			WHERE id IN :newAccIds];
+		system.debug('>>>>>>>>> accounts' + accounts);
 
-			system.debug('>>>>>>>>> accounts' + accounts);
-
+		Set<Account> accountsSetToUpdate = new Set<Account>();
 		List<Account> accountsToUpdate = new List<Account>();
 
 		for (Account acc : accounts) {
-			// create an address string
 			String address = '';
-			if (acc.BillingStreet != null)
-				address += acc.BillingStreet +', ';
-			if (acc.BillingCity != null)
-				address += acc.BillingCity +', ';
-			if (acc.BillingState != null)
-				address += acc.BillingState +' ';
-			if (acc.BillingPostalCode != null)
-				address += acc.BillingPostalCode +', ';
-			if (acc.BillingCountry != null)
-				address += acc.BillingCountry;
+			if (territoryConfig.TerrMgmt__Billing_Shipping_Address__c == 'Billing') {
+				if (acc.BillingStreet != null)
+					address += acc.BillingStreet +', ';
+				if (acc.BillingCity != null)
+					address += acc.BillingCity +', ';
+				if (acc.BillingState != null)
+					address += acc.BillingState +' ';
+				if (acc.BillingPostalCode != null)
+					address += acc.BillingPostalCode +', ';
+				if (acc.BillingCountry != null)
+					address += acc.BillingCountry;
+			} else {
+				if (acc.ShippingStreet != null)
+					address += acc.ShippingStreet +', ';
+				if (acc.ShippingCity != null)
+					address += acc.ShippingCity +', ';
+				if (acc.ShippingState != null)
+					address += acc.ShippingState +' ';
+				if (acc.ShippingPostalCode != null)
+					address += acc.ShippingPostalCode +', ';
+				if (acc.ShippingCountry != null)
+					address += acc.ShippingCountry;
+			}
 
+			Boolean emptyBillingAddress = false;
+			Boolean emptyShippingAddress = false;
+			if ((acc.BillingStreet == null || acc.BillingStreet == '') &&
+				(acc.BillingCity == null || acc.BillingCity == '') &&
+				(acc.BillingState == null || acc.BillingState == '') &&
+				(acc.BillingPostalCode == null || acc.BillingPostalCode == '') &&
+				(acc.BillingCountry == null || acc.BillingCountry == '')) {
+				acc.BillingLatitude  = null;
+				acc.BillingLongitude = null;
+				emptyBillingAddress = true;
+				
+				system.debug('>>>>>>>>> accountsSetToUpdate 1 = ' + accountsSetToUpdate);
+			} 
+			 if ((acc.ShippingStreet == null || acc.ShippingStreet == '') &&
+				(acc.ShippingCity == null || acc.ShippingCity == '') &&
+				(acc.ShippingState == null || acc.ShippingState == '') &&
+				(acc.ShippingPostalCode == null || acc.ShippingPostalCode == '') &&
+				(acc.ShippingCountry == null || acc.ShippingCountry == '')) {
+				acc.ShippingLatitude  = null;
+				acc.ShippingLongitude = null;
+				emptyShippingAddress = true;
+				system.debug('>>>>>>>>> accountsSetToUpdate 2 = ' + accountsSetToUpdate);
+			}
 			system.debug('>>>>>>>>> address' + address);
+			
+			accountsToUpdate.addAll(accountsSetToUpdate);
 
+			String geocodingAPIkey = getGeocodingAPIkey('Default');
+			system.debug('>>>>>>>>> geocodingAPIkey' + geocodingAPIkey);
 			address = EncodingUtil.urlEncode(address, 'UTF-8');
 
-			// build callout
 			Http h = new Http();
 			HttpRequest req = new HttpRequest();
-			req.setEndpoint('http://maps.googleapis.com/maps/api/geocode/json?address=' + address + '&sensor=false');
+			req.setEndpoint('https://maps.googleapis.com/maps/api/geocode/json?key=' + geocodingAPIkey + '&address=' + address + '&sensor=false');
 			req.setMethod('GET');
 			req.setTimeout(60000);
 
+			//key=AIzaSyCCvoGwq-Ke3rDJZ8tVxBtuzZxVvrrsgBM& - Brett's
+			//  AIzaSyDTAIPHvuFwa8ENYt2rk0uaRSzjCqwHYGY
+
 			try {
-				// callout
 				HttpResponse res = h.send(req);
 
-				system.debug('>>>>>>>>> res' + res);
+				system.debug('>>>>>>>>> res = ' + res);
+				system.debug('>>>>>>>>> res.getBody() = ' + res.getBody());
 
 				// parse coordinates from response
 				JSONParser parser = JSON.createParser(res.getBody());
@@ -725,18 +786,30 @@ public class TM_AccountTriggerHandler
 
 				// update coordinates if we get back
 				if (latitude != null) {
-					acc.BillingLatitude  = latitude;
-					acc.BillingLongitude = longitude;
+					if (territoryConfig.TerrMgmt__Billing_Shipping_Address__c == 'Billing') {
+						acc.BillingLatitude  = latitude;
+						acc.BillingLongitude = longitude;
+					} else {
+						acc.ShippingLatitude  = latitude;
+						acc.ShippingLongitude = longitude;
+					} 
 					accountsToUpdate.add(acc);
+				} else if (emptyBillingAddress == true || emptyShippingAddress == true) {
+					accountsToUpdate.add(acc);
+
 				}
 
 			} catch (Exception e) {
-				system.debug('>>>>>>>>> Exception' + e);
+				system.debug('>>>>>>>>> Exception = ' + e);
 			}
 		}
 
-		system.debug('>>>>>>>>> accountsToUpdate' + accountsToUpdate);
-		update accountsToUpdate;
+		system.debug('>>>>>>>>> accountsToUpdate = ' + accountsToUpdate);
+		try {
+			update accountsToUpdate;
+		} catch (Exception e) {
+			system.debug('>>>>>>>>> Update Exception = ' + e);
+		}
 	}
 
 

@@ -1,4 +1,4 @@
-<apex:page docType="html-5.0" controller="TM_TerritoryManagementControllerNew" action="{!checkConfigExisting}" tabStyle="Territory_Management_New__tab" sidebar="false" standardStylesheets="false">
+<apex:page docType="html-5.0" controller="TM_TerritoryManagementControllerNew" action="{!checkConfigExisting}" tabStyle="Territory_Management_New__tab" sidebar="false" standardStylesheets="false" title="Territory Mgmt">
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="description" content="" />
@@ -14,7 +14,6 @@
     <link href="{!URLFOR($Resource.TMLibrary, '/TMLibrary/assets/fa/css/font-awesome.min.css')}" rel="stylesheet" />
     <link href="{!URLFOR($Resource.TMLibrary, '/TMLibrary/assets/css/custom.css')}" rel="stylesheet" />
     <link href="{!URLFOR($Resource.TMLibrary, '/TMLibrary/assets/css/bootstrap-select.css')}" rel="stylesheet" />
-    <link href="{!URLFOR($Resource.TMLibrary, '/TMLibrary/assets/css/bootstrap-select.css.map')}" rel="stylesheet" />
     
     <apex:includeScript value="{!URLFOR($Resource.TMJQueryUI, '/jquery-ui-1.11.4/external/jquery/jquery.js')}" />
     <script src="{!URLFOR($Resource.TMLibrary, '/TMLibrary/assets/js/ie-emulation-modes-warning.js')}"></script>
@@ -23,6 +22,7 @@
     <script src="{!URLFOR($Resource.TMLibrary, '/TMLibrary/assets/js/custom.js')}"></script>
     <script src="{!URLFOR($Resource.TMLibrary, '/TMLibrary/assets/js/bootstrap-select.js')}"></script>
     <script src="{!URLFOR($Resource.TMLibrary, '/TMLibrary/assets/js/bootstrap-select.js.map')}"></script>
+    <!-- <script src="{!URLFOR($Resource.ColorPicker, 'jscolor.js')}"></script> -->
     <apex:includeScript value="{!URLFOR($Resource.TMJQueryUI, '/jquery-ui-1.11.4/jquery-ui.js')}"/>
     <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/MultiSelect.js')}" />
     <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery.validate.js')}" />
@@ -191,7 +191,7 @@
         }
     </style>
 
-    <apex:form id="theForm" styleClass="theForm"> 
+    <apex:form id="theForm" styleClass="theForm">
         <apex:actionFunction action="{!changeSavedChangeBox}" name="changeSavedChangeBoxFun" status="status" reRender="theForm" />
         <apex:actionFunction action="{!removeTerritory}" name="removeTerritory" reRender="theForm" status="status" />
         <apex:actionFunction action="{!saveTerritory}" name="saveTerritoryFun" reRender="theForm" status="status"/>
@@ -383,6 +383,14 @@
                                                 <div class="requiredBlock"></div>
                                                 <apex:inputField value="{!Territory.New_Owner__c}" styleClass="terrOwner requiredFields" />
                                             </div>
+                                            <!-- <div class="form-group">
+                                                <label style="margin-top: 20px;">Color</label>
+                                                <br></br>
+                                                <apex:inputField value="{!Territory.Color__c}" styleClass="jscolor" style="width:90%; border-radius: 6px; padding: 3px;"/>
+                                                <script type="text/javascript">
+                                                    jscolor.installByClassName('jscolor');
+                                                </script>
+                                            </div>  -->                                           
                                         </div>
                                     </div>
                                     <apex:outputPanel rendered="{!IsEnableAllButtons}"> 
@@ -1858,12 +1866,19 @@
         });
 
         function addPopTerritories()
-        {
+        {   
+            var select = document.querySelector ("[id*='rightElement'");
+            var childNodes = Array.apply(null, select.childNodes);
+
             setActivePanel('geography');
             if(setSelectedHidden())
             {
+                childNodes.forEach(function(option){
+                    select.removeChild(option);
+                });
+
                 addPopTerritoriesFun();
-            } 
+            }
         }
 
         function setSelectedHidden()
@@ -1873,6 +1888,7 @@
             $('.selectElementRight option').each(function(){
                 ids += $(this).val() + ';';
             });
+            console.log(ids);
             if(ids != '')
             {
                 ids = ids.substring(0, ids.length - 1);

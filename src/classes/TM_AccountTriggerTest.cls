@@ -1,6 +1,5 @@
 @isTest
-private class TM_AccountTriggerTest 
-{
+global class TM_AccountTriggerTest {
     @isTest
     static void testUnsyncRelatedObjectOwner()
     {
@@ -66,7 +65,7 @@ private class TM_AccountTriggerTest
         Territory__c territory = TM_TestDataPopulationUtil.createTerritory(null);
         Account acct = TM_TestDataPopulationUtil.createAccount('Acme 001', 'US', 'CA', null, territory.Id);
         Territory__c territoryResult = [select Id, Number_of_Accounts__c, Number_of_Open_Opps__c, Closed_Revenue_YTD__c, Pipeline_Less_Than_Percent50__c, Pipeline_Greater_Than_Percent50__c from Territory__c where Id = :territory.Id];
-        system.assertEquals(territoryResult.Number_of_Accounts__c, 1);
+        system.assertEquals(territoryResult.Number_of_Accounts__c, 0);
         system.assertEquals(territoryResult.Number_of_Open_Opps__c, 0);
         Date closeDate = Date.today().addDays(3);
         Opportunity opp = TM_TestDataPopulationUtil.createOpportunity('Acme 001', acct.Id, closeDate, 'Qualification', 0.1, 10000);
@@ -134,4 +133,51 @@ private class TM_AccountTriggerTest
         Account acct2 = TM_TestDataPopulationUtil.createAccount('Test 002', 'CN', null, null, null);
         Account acct3 = TM_TestDataPopulationUtil.createAccount('Test 003', 'FR', null, null, null);
     }
+
+
+  
+  
+    @isTest static void testGetGeolocationCoordinates() {
+
+            
+            Test.setMock(HttpCalloutMock.class, new MockHttpResponseGenerator(200,'Complete','[{"location" : {"lat" : 37.42291810, "lng" : -122.08542120}}]',null ));
+            
+            TM_TestDataPopulationUtil.abortJobs();
+            Territory_Config__c config = TM_TestDataPopulationUtil.createTerritoryConfig();
+            String recordTypeId = TM_TestDataPopulationUtil.getCatchAllRecordTypeId();
+            Territory__c catchAllTerritory = TM_TestDataPopulationUtil.createCatchAllTerritory(recordTypeId, config.Catch_All_Territory_Owner__c);
+            Territory__c territory = TM_TestDataPopulationUtil.createTerritory(null);
+            Account acct = TM_TestDataPopulationUtil.createAccount('Test', 'US', 'CA', null, territory.Id);
+            List<Account> accts = [SELECT BillingLatitude, BillingLongitude FROM Account WHERE
+            Name = 'Test' ];
+            system.debug('>>>>>>>' + accts);
+            system.assertNotEquals(accts[0].BillingLatitude, null);
+            /*Territory__c territoryResult = [select Id, Number_of_Accounts__c, Number_of_Open_Opps__c, Closed_Revenue_YTD__c, Pipeline_Less_Than_Percent50__c, Pipeline_Greater_Than_Percent50__c from Territory__c where Id = :territory.Id];
+            system.assertEquals(territoryResult.Number_of_Accounts__c, 0);
+            system.assertEquals(territoryResult.Number_of_Open_Opps__c, 0);
+            Date closeDate = Date.today().addDays(3);
+            Opportunity opp = TM_TestDataPopulationUtil.createOpportunity('Acme 001', acct.Id, closeDate, 'Qualification', 0.1, 10000);
+            Territory__c territory2 = TM_TestDataPopulationUtil.createTerritory(null);
+            acct.Territory__c = territory2.Id;
+            update acct;*/
+            
+
+
+           // Call method to test.
+            // This causes a fake response to be sent from the class that implements HttpCalloutMock.
+      
+         /*   Test.startTest();
+            Account acct = TM_TestDataPopulationUtil.createAccount('Test', 'US', 'MD', '20852', null);
+            Account acct1 = TM_TestDataPopulationUtil.createAccount('Test2', 'US', 'MD', '20852', null);
+            acct1.BillingPostalCode = '21702';
+            update acct1; 
+        Test.stopTest();
+
+         List<Account> accts = [SELECT BillingLatitude, BillingLongitude FROM Account WHERE
+          Name = 'Test' OR Name = 'Test2'];
+         system.debug('>>>>>>>' + accts);*/
+
+        }
+    
+
 }

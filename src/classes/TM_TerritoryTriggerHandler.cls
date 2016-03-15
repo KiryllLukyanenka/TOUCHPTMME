@@ -18,7 +18,7 @@ public class TM_TerritoryTriggerHandler
             if(territory.RecordTypeId == catchAllRecordTypeId && territory.Territory_Type__c == 'Catch All')
             {
                 catchAllTerritoryIds.add(territory.Id);
-            }
+            } 
         }
         
         if(catchAllTerritoryIds.size() == 0)
@@ -63,5 +63,47 @@ public class TM_TerritoryTriggerHandler
             }
         }
         return territoryMap;
+    }
+
+    public static void getTerritoryColor(List<Territory__c> newRecords) {
+        for (Territory__c ter :newRecords) {
+            ter.Color__c = addColor();
+        }
+    }
+
+    public static String addColor() {
+        List<String> characters = new List<String>{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+        String returnColor = '';
+        for (Integer i = 0; i < 6; i++) {
+            returnColor += characters.get(Math.mod(Integer.valueOf(Math.random() * 50000), 16));
+        }
+        return returnColor;
+    }
+
+    public static void calculateAccountsNumber(List<Territory__c> newRecords) {
+        Map<Id, Territory__c> updatedTerritories = new Map<Id, Territory__c>([
+            SELECT Id, 
+            (
+                SELECT Id, TerrMgmt__Number_of_Open_Opps__c
+                FROM Accounts__r
+            ) 
+            FROM Territory__c 
+            WHERE Id IN: newRecords
+            LIMIT 50000
+        ]);
+        for (Territory__c territory : newRecords) {
+            if (updatedTerritories.containsKey(territory.Id)) {
+                territory.TerrMgmt__Number_of_Accounts__c = updatedTerritories.get(territory.Id).Accounts__r.size(); 
+                Decimal numberOfOpenOps = 0;
+                for (Account acc : updatedTerritories.get(territory.Id).Accounts__r) {
+                    numberOfOpenOps += acc.TerrMgmt__Number_of_Open_Opps__c;
+                }
+                territory.TerrMgmt__Number_of_Open_Opps__c = numberOfOpenOps;
+            }
+
+           
+        }
+
+
     }
 }
