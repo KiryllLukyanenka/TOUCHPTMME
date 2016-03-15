@@ -107,7 +107,8 @@ public class TM_TestDataPopulationUtil
      */
     public static Account createAccount(String name, String country, String state, String postalCode, String territoryId)
     {
-        Account acct = new Account(Name = name, BillingCountry = country, ShippingCountry = country, BillingState = state, ShippingState = state, BillingPostalCode = postalCode, ShippingPostalCode = postalCode, Territory__c = territoryId, No_Territory_Assignment__c = false);
+        Account acct = new Account(Name = name, BillingCountry = country, ShippingCountry = country, BillingState = state, ShippingState = state, BillingPostalCode = postalCode, ShippingPostalCode = postalCode, Territory__c = territoryId, No_Territory_Assignment__c = false,
+                    BillingLatitude = null, BillingLongitude = null); 
         insert acct;
         return acct;
     }

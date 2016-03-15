@@ -1,381 +1,401 @@
 <apex:page controller="TM_ConfigController" tabStyle="Setup__tab" sidebar="false" title="Territory Management Configuration" id="page">
-    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery-1.7.2.min.js')}"/>
-    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery.validate.js')}" />
-    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery-ui.js')}" />
-    <apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery.blockUI.js')}" />
-    <apex:stylesheet value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/css/popup-style.css')}"/>
-    <apex:stylesheet value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/css/jquery-ui.css')}"/>
-    <style type="text/css">
-        .overlayBackground
-        {
-            background-color: black;
-        }
-        .displayBG
-        {
-            border: none;
-            width: 100%;
-            height: 100%;
-            display: block;
-            position: fixed;
-            text-align: center;
-        }
-        .loadingImg
-        {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            top: 50%;
-            left: 50%;
-            margin: -15px 0 0 -15px;         
-        }
+	<apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery-1.7.2.min.js')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery.validate.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery-ui.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/js/jquery.blockUI.js')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/css/popup-style.css')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.TerritoryManagement, '/TerritoryManagement/css/jquery-ui.css')}"/>
+	<style type="text/css">
+		.overlayBackground
+		{
+			background-color: black;
+		}
+		.displayBG
+		{
+			border: none;
+			width: 100%;
+			height: 100%;
+			display: block;
+			position: fixed;
+			text-align: center;
+		}
+		.loadingImg
+		{
+			position: absolute;
+			width: 30px;
+			height: 30px;
+			top: 50%;
+			left: 50%;
+			margin: -15px 0 0 -15px;         
+		}
 
-        label.error
-        {
-            color: #c00;
-            border: 0;
-            font-style: italic;
-        }
+		label.error
+		{
+			color: #c00;
+			border: 0;
+			font-style: italic;
+		}
 
-        .bPageBlock .detailList .error
-        {
-            border: 0;
-        }
+		.bPageBlock .detailList .error
+		{
+			border: 0;
+		}
 
-        .apexp .bPageBlock .error
-        {
-            border: 0;
-        }
-    </style>
-    <apex:sectionHeader title="Territory Management Configuration"/>        
-    <apex:form id="theForm" styleClass="theForm">
-        <apex:actionStatus id="loading" layout="block">         
-            <apex:facet name="start">
-                <div class="overlayBackground displayBG">
-                    <img src="/img/loading32.gif" id="loading" class="loadingImg"/>
-                </div>
-            </apex:facet>
-        </apex:actionStatus>
-        <apex:actionFunction name="submitConfigurationFun" action="{!submitConfiguration}" reRender="theForm" oncomplete="$.unblockUI();"/>
-        <apex:actionFunction name="editFun" action="{!edit}" reRender="theForm" oncomplete="$.unblockUI();" />
-        <apex:actionFunction name="cancelUpdateFun" action="{!cancelUpdate}" immediate="true" reRender="theForm" oncomplete="$.unblockUI();" />
-        <apex:pageBlock title="Setup">
-            <apex:pageMessages escape="false"></apex:pageMessages>
-            <apex:pageBlockSection rendered="{!Not(IsEditMode)}">  
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Catch All Territory Name"></apex:outputLabel>
-                    <apex:outputText value="{!ConfigInfo.CatchAllName}" />
-                </apex:pageBlockSectionItem>
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Use Approval Process" ></apex:outputLabel>
-                    <apex:outputText value="{!ConfigInfo.UseApproval}"  />
-                </apex:pageBlockSectionItem>
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Catch All Territory Owner" ></apex:outputLabel>
-                    <apex:outputText value="{!ConfigInfo.CatchAllOwner}" />
-                </apex:pageBlockSectionItem>     
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Approver" ></apex:outputLabel>
-                    <apex:outputText value="{!ConfigInfo.Approver}"/>
-                </apex:pageBlockSectionItem>
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Include Contacts" ></apex:outputLabel>
-                    <apex:inputCheckbox value="{!ConfigInfo.IncludeContacts}" disabled="true"/>
-                </apex:pageBlockSectionItem>                          
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Billing/Shipping Address" ></apex:outputLabel>
-                    <apex:outputText value="{!ConfigInfo.BillingShippingAddress}"/>
-                </apex:pageBlockSectionItem> 
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Include Open Opps" ></apex:outputLabel>
-                    <apex:inputCheckbox value="{!ConfigInfo.IncludeOpenOpps}" disabled="true"/>
-                </apex:pageBlockSectionItem> 
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Territory Snapshot?" ></apex:outputLabel>
-                    <apex:outputText value="{!ConfigInfo.TerritorySnapshot}"/> 
-                </apex:pageBlockSectionItem>
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Include Open Activities" ></apex:outputLabel>
-                    <apex:inputCheckbox value="{!ConfigInfo.IncludeActivities}" disabled="true"/>
-                </apex:pageBlockSectionItem>                                           
-            </apex:pageBlockSection>
+		.apexp .bPageBlock .error
+		{
+			border: 0;
+		}
+	</style>
+	<apex:sectionHeader title="Territory Management Configuration"/>        
+	<apex:form id="theForm" styleClass="theForm">
+		<apex:actionStatus id="loading" layout="block">         
+			<apex:facet name="start">
+				<div class="overlayBackground displayBG">
+					<img src="/img/loading32.gif" id="loading" class="loadingImg"/>
+				</div>
+			</apex:facet>
+		</apex:actionStatus>
+		<apex:actionFunction name="submitConfigurationFun" action="{!submitConfiguration}" reRender="theForm" oncomplete="$.unblockUI();"/>
+		<apex:actionFunction name="editFun" action="{!edit}" reRender="theForm" oncomplete="$.unblockUI();" />
+		<apex:actionFunction name="cancelUpdateFun" action="{!cancelUpdate}" immediate="true" reRender="theForm" oncomplete="$.unblockUI();" />
+		<apex:pageBlock title="Territory Setup">
+			<apex:pageBlockButtons location="Top">
+				<apex:outputPanel rendered="{!AND(isSystemAdmin, IsEditMode)}">
+					<input type="button" onclick="submitConfiguration();" class="btn" value="Submit"/>
+				</apex:outputPanel>
+				<apex:outputPanel rendered="{!And(isSystemAdmin, Not(IsEditMode),Not(IsNull(TM_Config.Id)))}">
+					<input type="button" onclick="edit();" value="Edit" class="btn" />
+				</apex:outputPanel>
+				<apex:outputPanel rendered="{!And(isSystemAdmin, Not(IsEditMode),IsNull(TM_Config.Id))}">
+					<input type="button"  onclick="edit();" value="New" class="btn" />
+				</apex:outputPanel>                
+				<apex:outputPanel rendered="{!AND(IsEditMode, IsSystemAdmin)}">
+					<input type="button" value="Cancel" class="btn" onclick="cancelUpdate();"/>
+				</apex:outputPanel>
+			</apex:pageBlockButtons>
+			<apex:pageMessages escape="false"></apex:pageMessages>
+			<apex:pageBlockSection rendered="{!Not(IsEditMode)}">  
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Catch All Territory Name"></apex:outputLabel>
+					<apex:outputText value="{!ConfigInfo.CatchAllName}" />
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Use Approval Process" ></apex:outputLabel>
+					<apex:outputText value="{!ConfigInfo.UseApproval}"  />
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Catch All Territory Owner" ></apex:outputLabel>
+					<apex:outputText value="{!ConfigInfo.CatchAllOwner}" />
+				</apex:pageBlockSectionItem>     
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Approver" ></apex:outputLabel>
+					<apex:outputText value="{!ConfigInfo.Approver}"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Include Contacts" ></apex:outputLabel>
+					<apex:inputCheckbox value="{!ConfigInfo.IncludeContacts}" disabled="true"/>
+				</apex:pageBlockSectionItem>                          
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Billing/Shipping Address" ></apex:outputLabel>
+					<apex:outputText value="{!ConfigInfo.BillingShippingAddress}"/>
+				</apex:pageBlockSectionItem> 
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Include Open Opps" ></apex:outputLabel>
+					<apex:inputCheckbox value="{!ConfigInfo.IncludeOpenOpps}" disabled="true"/>
+				</apex:pageBlockSectionItem> 
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Territory Snapshot?" ></apex:outputLabel>
+					<apex:outputText value="{!ConfigInfo.TerritorySnapshot}"/> 
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Include Open Activities" ></apex:outputLabel>
+					<apex:inputCheckbox value="{!ConfigInfo.IncludeActivities}" disabled="true"/>
+				</apex:pageBlockSectionItem>                                           
+			</apex:pageBlockSection>
 
-            <apex:pageBlockSection rendered="{!IsEditMode}">
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Catch All Territory Name"></apex:outputLabel>
-                    <apex:outputPanel >
-                        <div class="requiredInput">
-                            <div class="requiredBlock"></div>
-                            <apex:inputField value="{!TM_Config.Catch_All_Territory_Name__c}" styleClass="required"/>
-                        </div> 
-                    </apex:outputPanel>
-                </apex:pageBlockSectionItem>
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Use Approval Process"></apex:outputLabel>
-                    <apex:outputPanel >
-                        <div class="requiredInput">
-                            <div class="requiredBlock"></div>
-                            <apex:inputField value="{!TM_Config.Use_Approval_Process__c}" styleClass="useApprovalProcess required" /> 
-                        </div>
-                    </apex:outputPanel>
-                </apex:pageBlockSectionItem>
-                
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Catch All Territory Owner"></apex:outputLabel>
-                    <apex:outputPanel >
-                        <div class="requiredInput">
-                            <div class="requiredBlock"></div>
-                            <apex:inputField value="{!TM_Config.Catch_All_Territory_Owner__c}" styleClass="required"/>
-                        </div>
-                    </apex:outputPanel> 
-                </apex:pageBlockSectionItem>
-                                                 
-                 
-                <apex:inputField value="{!TM_Config.Approver__c}" styleClass="approverInput checkApprover"/>                          
-                <apex:inputField value="{!TM_Config.Include_Contacts__c}" styleClass="includeContacts" /> 
+			<apex:pageBlockSection rendered="{!IsEditMode}">
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Catch All Territory Name"></apex:outputLabel>
+					<apex:outputPanel >
+						<div class="requiredInput">
+							<div class="requiredBlock"></div>
+							<apex:inputField value="{!TM_Config.Catch_All_Territory_Name__c}" styleClass="required"/>
+						</div> 
+					</apex:outputPanel>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Use Approval Process"></apex:outputLabel>
+					<apex:outputPanel >
+						<div class="requiredInput">
+							<div class="requiredBlock"></div>
+							<apex:inputField value="{!TM_Config.Use_Approval_Process__c}" styleClass="useApprovalProcess required" /> 
+						</div>
+					</apex:outputPanel>
+				</apex:pageBlockSectionItem>
+				
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Catch All Territory Owner"></apex:outputLabel>
+					<apex:outputPanel >
+						<div class="requiredInput">
+							<div class="requiredBlock"></div>
+							<apex:inputField value="{!TM_Config.Catch_All_Territory_Owner__c}" styleClass="required"/>
+						</div>
+					</apex:outputPanel> 
+				</apex:pageBlockSectionItem>
+												 
+				 
+				<apex:inputField value="{!TM_Config.Approver__c}" styleClass="approverInput checkApprover"/>                          
+				<apex:inputField value="{!TM_Config.Include_Contacts__c}" styleClass="includeContacts" /> 
 
-                <apex:pageBlockSectionItem >
-                    <apex:outputLabel value="Billing/Shipping Address"></apex:outputLabel>
-                    <apex:outputPanel >
-                        <div class="requiredInput">
-                            <div class="requiredBlock"></div>
-                            <apex:inputField value="{!TM_Config.Billing_Shipping_Address__c}" styleClass="required"/> 
-                        </div>
-                    </apex:outputPanel> 
-                </apex:pageBlockSectionItem>
-                                                                                 
-                <apex:inputField value="{!TM_Config.Include_Open_Opps__c}" styleClass="includeOpenOpps" />                                                          
-                <apex:inputField value="{!TM_Config.Territory_Snapshots__c}" />                               
-                <apex:inputField value="{!TM_Config.Include_Open_Activities__c}" styleClass="includeOpenActivities"/>                   
-            </apex:pageBlockSection>
-            <apex:pageBlockButtons location="bottom">
-                <apex:outputPanel rendered="{!AND(isSystemAdmin, IsEditMode)}">
-                    <input type="button" onclick="submitConfiguration();" class="btn" value="Submit"/>
-                </apex:outputPanel>
-                <apex:outputPanel rendered="{!And(isSystemAdmin, Not(IsEditMode),Not(IsNull(TM_Config.Id)))}">
-                    <input type="button" onclick="edit();" value="Edit" class="btn" />
-                </apex:outputPanel>
-                <apex:outputPanel rendered="{!And(isSystemAdmin, Not(IsEditMode),IsNull(TM_Config.Id))}">
-                    <input type="button"  onclick="edit();" value="New" class="btn" />
-                </apex:outputPanel>                
-                <apex:outputPanel rendered="{!AND(IsEditMode, IsSystemAdmin)}">
-                    <input type="button" value="Cancel" class="btn" onclick="cancelUpdate();"/>
-                </apex:outputPanel>
-            </apex:pageBlockButtons>
-        </apex:pageBlock>
-        <apex:pageBlock >
-            <apex:facet name="header">
-                <span style="color:#333;font-weight:bold;font-size:14px;line-height:40px;margin-left:15px;">Territory Changes - Waiting for Submit</span>
-            </apex:facet>    
-            <apex:pageBlockTable value="{!TM_ChangesWatingSubmit}" var="item" rendered="{!And(Not(IsNull(TM_ChangesWatingSubmit)),TM_ChangesWatingSubmit.size > 0)}">
-                <apex:column rendered="{!isSystemAdmin}" headerValue="Action">
-                    <apex:commandLink value="Del" onclick="return confirmDelete();" action="{!deleteChangeBox}">
-                        <apex:param name="deleteCBId" value="{!item.ChangeSetId}"/>
-                    </apex:commandLink>
-                </apex:column>
-                <apex:column headerValue="Change Box Name">
-                    <apex:outputLink value="/apex/TM_TerritoryManagementConfiguration?cid={!item.ChangeSetId}">{!item.Name}</apex:outputLink>
-                    <apex:outputLink value="/apex/TM_ChangeBoxDetail?cid={!item.ChangeSetId}" style="color:red;margin-left:5px;font-size:75%;">View Detail&gt;&gt;</apex:outputLink>
-                </apex:column>
-                <apex:column value="{!item.Owner}" headerValue="Owner"/>
-                <apex:column value="{!item.CreatedBy}" headerValue="Created By"/>
-                <apex:column value="{!item.Status}" headerValue="Status"/>
-            </apex:pageBlockTable>
-        </apex:pageBlock>     
-        <apex:pageBlock >
-            <apex:facet name="header">
-                <span style="color:#333;font-weight:bold;font-size:14px;line-height:40px;margin-left:15px;">Territory Changes - Pending Approval</span>
-            </apex:facet> 
-            <apex:pageBlockTable value="{!TM_ChangesPendingApproval}" var="item" rendered="{!And(Not(IsNull(TM_ChangesPendingApproval)),TM_ChangesPendingApproval.size > 0)}">
-                <apex:column headerValue="Change Box Name">
-                    <apex:outputLink value="/apex/TM_TerritoryManagementConfiguration?cid={!item.ChangeSetId}">{!item.Name}</apex:outputLink>
-                        <apex:outputLink value="/apex/TM_ChangeBoxDetail?cid={!item.ChangeSetId}" style="color:red;margin-left:5px;font-size:75%;">View Detail&gt;&gt;</apex:outputLink>
-                </apex:column>
-                <apex:column value="{!item.SubmittedBy}" headerValue="Submitted By" />
-                <apex:column value="{!item.SubmitDate}" headerValue="Submit Date"/>
-                <apex:column value="{!item.Status}" headerValue="Status"/>
-                <apex:column rendered="{!OR(IsCurrentApprover, isSystemAdmin)}" headerValue="Action">
-                    <apex:commandLink value="Approve | Reject" onclick="showCommentPop('{!item.ChangeSetId}', '{!item.Comment}');return false;"/>
-                </apex:column>
-            </apex:pageBlockTable>
-        </apex:pageBlock> 
-        <apex:pageBlock >
-        <apex:facet name="header">
-                <span style="color:#333;font-weight:bold;font-size:14px;line-height:40px;margin-left:15px;">Approved Changes - Pending Effective Date</span>
-            </apex:facet> 
-            <apex:pageBlockTable value="{!TM_ChangesPendingEffective}" var="item" rendered="{!And(Not(IsNull(TM_ChangesPendingEffective)),TM_ChangesPendingEffective.size > 0)}">
-                <apex:column headerValue="Change Box Name">
-                    <apex:outputLink value="/apex/TM_TerritoryManagementConfiguration?cid={!item.ChangeSetId}">{!item.Name}</apex:outputLink>
-                    <apex:outputLink value="/apex/TM_ChangeBoxDetail?cid={!item.ChangeSetId}" style="color:red;margin-left:5px;font-size:75%;">View Detail&gt;&gt;</apex:outputLink>
-                </apex:column>
-                <apex:column value="{!item.Approver}" headerValue="Approver"/>
-                <apex:column value="{!item.ApproveDate}" headerValue="Approve Date" />
-                <apex:column value="{!item.EffectiveDate}" headerValue="Effective Date"/>
-                <apex:column value="{!item.Status}" headerValue="Status"/>
-                <apex:column rendered="{!isSystemAdmin}" headerValue="Cancel">
-                    <apex:commandLink value="Cancel" onclick="return confirmCancel();" action="{!cancel}">
-                        <apex:param name="cbId" value="{!item.ChangeSetId}"/>
-                    </apex:commandLink>
-                </apex:column>
-            </apex:pageBlockTable>
-        </apex:pageBlock>       
-        <apex:inputHidden id="changeBoxHiddenId" value="{!ChangeBoxId}"/>
-        <div id="inlineEditDialog" class="overlayDialog inlineEditDialog" style="max-width: 500px;min-width:350px; display: block; left: 30%; top: 25%;visibility:hidden">
-            <div class="topRight">
-                <div class="topLeft">
-                    <img id="inlineEditDialogX" onmouseover="this.className='dialogCloseOn'" onmouseout="this.className='dialogClose'" onclick="closeCommentPop()" class="dialogClose" src="/s.gif" />
-                    <h2 id="inlineEditDialogTitle">Approval/Reject Approval Request</h2>
-                </div>
-            </div>
-            <div class="middle">
-                <div class="innerContent" id="inlineEditDialogContent">
-                    <div class="activeField">
-                        <div class="inlineEditCompoundDiv" style="text-align:left">
-                            <apex:pageBlock >
-                                <apex:pageBlockSection columns="1">
-                                    <apex:inputTextarea value="{!Comments}" styleClass="changeBoxComment" style="width: 340px; height: 120px;"/>
-                                </apex:pageBlockSection>   
-                            </apex:pageBlock>
-                        </div>
-                    </div>
-                    <div id="inlineEditDialog_buttons" class="buttons">
-                        <apex:commandButton action="{!approveChangeBox}" value="Approve"/>
-                        <apex:commandButton action="{!rejectChangeBox}" value="Reject"/>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="overlayBackground" id="background" style="width:3289px; height:1293px; display:none; position:fixed"></div>
-        <script type="text/javascript">
-            $(function(){
-                $('div[class="required"]').find('select').remove();
-                $('div[class="required"]').find(':input:not(":hidden")').addClass('required').removeAttr('title');
-                
-                $('div[class*="approverInput"]').find('select').remove();
-                $('div[class*="approverInput"]').find(':input:not(":hidden")').addClass('approverInput').addClass('checkApprover').removeAttr('title');
-                $('div[class*="approverInput"]').removeAttr("class");
-                
-                $(".useApprovalProcess").change(function(){
-                    if ($(this).val() != 'Yes') 
-                    {
-                        $(".approverInput").val('');
-                    }
-                });
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Billing/Shipping Address"></apex:outputLabel>
+					<apex:outputPanel >
+						<div class="requiredInput">
+							<div class="requiredBlock"></div>
+							<apex:inputField value="{!TM_Config.Billing_Shipping_Address__c}" styleClass="required"/> 
+						</div>
+					</apex:outputPanel> 
+				</apex:pageBlockSectionItem>
+																				 
+				<apex:inputField value="{!TM_Config.Include_Open_Opps__c}" styleClass="includeOpenOpps" />                                                          
+				<apex:inputField value="{!TM_Config.Territory_Snapshots__c}" />                               
+				<apex:inputField value="{!TM_Config.Include_Open_Activities__c}" styleClass="includeOpenActivities"/>                   
+			</apex:pageBlockSection>
+			
+		</apex:pageBlock>
 
-                $.validator.addMethod('checkApprover', function(value, element){
-                    return !($(".useApprovalProcess").val() == 'Yes' && value == '');
-                }, "Approver is required when you are using approval process.");
-                
-            });
-            
-            function edit()
-            {
-                blockScreen();
-                editFun();
-            }
+		<apex:pageBlock >
+			<apex:facet name="header">
+                <span style="color:#333;font-weight:bold;font-size:14px;line-height:40px;margin-left:15px;">Map Setup </span><br />
+                <span style="font-weight:bold;margin-left:15px;"> Status </span>: 
+                <span style="background-color: {!IF(CONTAINS(accountMappingStatus,'Progress'),'#f2dede','#dff0d8')}">{!accountMappingStatus}</span><br />
+				<p style="color:#333;line-height:40px;margin-left:15px;">Use this section to initiate the Territory Mapping functionality. After Territory Setup is complete click the Map Accounts button below to enable 
+				accounts to be shown on the Territory Map tab.
+				</p>
+			</apex:facet>
+			<apex:pageBlockButtons location="Bottom">
+				<apex:commandButton value="Map Accounts" onclick="return confirmUpdate();" action="{!geolocation}" disabled="{!OR(CONTAINS(accountMappingStatus,'Completed'),CONTAINS(accountMappingStatus,'Progress'))}"/>
+			</apex:pageBlockButtons>
+		</apex:pageBlock>
 
-            function cancelUpdate()
-            {
-                blockScreen();
-                cancelUpdateFun();
-            }
-        
-            function submitConfiguration()
-            {   
-                if ($(".theForm").valid()) {
-                    var relatedObjects = '';
-                    var catchAllName = '{!JSENCODE(TempConfig.Catch_All_Territory_Name__c)}'
-                    var includeContacts = $('.includeContacts').attr("checked") == 'checked' ? 'true' : 'false';
-                    var includeOpenActivities = $('.includeOpenActivities').attr("checked") == 'checked' ? 'true' : 'false';
-                    var includeOpenOpps = $('.includeOpenOpps').attr('checked') == 'checked' ? 'true' : 'false';
-                    var tempIncludeContacts = '{!TempConfig.Include_Contacts__c}';
-                    var tempIncludeOpenOpps = '{!TempConfig.Include_Open_Opps__c}';
-                    var tempIncludeOpenActivities = '{!TempConfig.Include_Open_Activities__c}';
-                    if(includeContacts == 'true')
-                    {
-                        relatedObjects += ' Contacts,';
-                    }
-                    if(includeOpenActivities == 'true')
-                    {
-                        relatedObjects += ' Tasks, Events,';
-                    }
-                    if(includeOpenOpps == 'true')
-                    {
-                        relatedObjects += ' Open Opportunties,';
-                    }
-                   
-                    if(relatedObjects.length > 0)
-                    {
-                        relatedObjects = relatedObjects.substring(0, relatedObjects.length - 1);
-                    }
-                    var str = '';
-                    if(includeContacts  != tempIncludeContacts || includeOpenActivities  != tempIncludeOpenActivities || includeOpenOpps != tempIncludeOpenOpps || catchAllName == '')
-                    {
-                        if(!(includeContacts == 'true' && includeOpenActivities == 'true' && includeOpenOpps == 'true'))
-                        {
-                            str = 'Starting with the next territory change, only Accounts and' + relatedObjects + ' will be assigned to the Territory Owner.'
-                            if(includeContacts != 'true' && includeOpenOpps != 'true' && includeOpenOpps != 'true')
-                            {
-                                str = 'Starting with the next territory change, only Accounts will be assigned to the Territory Owner.';
-                            }    
-                        }
-                    }
-                    if(str != '')
-                    {
-                        if(confirm(str))
-                        {
-                            blockScreen();
-                            submitConfigurationFun();
-                        }
-                    }
-                    else
-                    {
-                        blockScreen();
-                        submitConfigurationFun();
-                    }
-                      
-                };    
-            }
-     
-            function confirmCancel()
-            {
-                return confirm('The record will be canceled. Continue?');
-            }
+		<apex:pageBlock >
+			<apex:facet name="header">
+				<span style="color:#333;font-weight:bold;font-size:14px;line-height:40px;margin-left:15px;">Territory Changes - Waiting for Submit</span>
+			</apex:facet>    
+			<apex:pageBlockTable value="{!TM_ChangesWatingSubmit}" var="item" rendered="{!And(Not(IsNull(TM_ChangesWatingSubmit)),TM_ChangesWatingSubmit.size > 0)}">
+				<apex:column rendered="{!isSystemAdmin}" headerValue="Action">
+					<apex:commandLink value="Del" onclick="return confirmDelete();" action="{!deleteChangeBox}">
+						<apex:param name="deleteCBId" value="{!item.ChangeSetId}"/>
+					</apex:commandLink>
+				</apex:column>
+				<apex:column headerValue="Change Box Name">
+					<apex:outputLink value="/apex/TM_TerritoryManagementConfiguration?cid={!item.ChangeSetId}">{!item.Name}</apex:outputLink>
+					<apex:outputLink value="/apex/TM_ChangeBoxDetail?cid={!item.ChangeSetId}" style="color:red;margin-left:5px;font-size:75%;">View Detail&gt;&gt;</apex:outputLink>
+				</apex:column>
+				<apex:column value="{!item.Owner}" headerValue="Owner"/>
+				<apex:column value="{!item.CreatedBy}" headerValue="Created By"/>
+				<apex:column value="{!item.Status}" headerValue="Status"/>
+			</apex:pageBlockTable>
+		</apex:pageBlock>     
+		<apex:pageBlock >
+			<apex:facet name="header">
+				<span style="color:#333;font-weight:bold;font-size:14px;line-height:40px;margin-left:15px;">Territory Changes - Pending Approval</span>
+			</apex:facet> 
+			<apex:pageBlockTable value="{!TM_ChangesPendingApproval}" var="item" rendered="{!And(Not(IsNull(TM_ChangesPendingApproval)),TM_ChangesPendingApproval.size > 0)}">
+				<apex:column headerValue="Change Box Name">
+					<apex:outputLink value="/apex/TM_TerritoryManagementConfiguration?cid={!item.ChangeSetId}">{!item.Name}</apex:outputLink>
+						<apex:outputLink value="/apex/TM_ChangeBoxDetail?cid={!item.ChangeSetId}" style="color:red;margin-left:5px;font-size:75%;">View Detail&gt;&gt;</apex:outputLink>
+				</apex:column>
+				<apex:column value="{!item.SubmittedBy}" headerValue="Submitted By" />
+				<apex:column value="{!item.SubmitDate}" headerValue="Submit Date"/>
+				<apex:column value="{!item.Status}" headerValue="Status"/>
+				<apex:column rendered="{!OR(IsCurrentApprover, isSystemAdmin)}" headerValue="Action">
+					<apex:commandLink value="Approve | Reject" onclick="showCommentPop('{!item.ChangeSetId}', '{!item.Comment}');return false;"/>
+				</apex:column>
+			</apex:pageBlockTable>
+		</apex:pageBlock> 
+		<apex:pageBlock >
+		<apex:facet name="header">
+				<span style="color:#333;font-weight:bold;font-size:14px;line-height:40px;margin-left:15px;">Approved Changes - Pending Effective Date</span>
+			</apex:facet> 
+			<apex:pageBlockTable value="{!TM_ChangesPendingEffective}" var="item" rendered="{!And(Not(IsNull(TM_ChangesPendingEffective)),TM_ChangesPendingEffective.size > 0)}">
+				<apex:column headerValue="Change Box Name">
+					<apex:outputLink value="/apex/TM_TerritoryManagementConfiguration?cid={!item.ChangeSetId}">{!item.Name}</apex:outputLink>
+					<apex:outputLink value="/apex/TM_ChangeBoxDetail?cid={!item.ChangeSetId}" style="color:red;margin-left:5px;font-size:75%;">View Detail&gt;&gt;</apex:outputLink>
+				</apex:column>
+				<apex:column value="{!item.Approver}" headerValue="Approver"/>
+				<apex:column value="{!item.ApproveDate}" headerValue="Approve Date" />
+				<apex:column value="{!item.EffectiveDate}" headerValue="Effective Date"/>
+				<apex:column value="{!item.Status}" headerValue="Status"/>
+				<apex:column rendered="{!isSystemAdmin}" headerValue="Cancel">
+					<apex:commandLink value="Cancel" onclick="return confirmCancel();" action="{!cancel}">
+						<apex:param name="cbId" value="{!item.ChangeSetId}"/>
+					</apex:commandLink>
+				</apex:column>
+			</apex:pageBlockTable>
+		</apex:pageBlock>       
+		<apex:inputHidden id="changeBoxHiddenId" value="{!ChangeBoxId}"/>
+		<div id="inlineEditDialog" class="overlayDialog inlineEditDialog" style="max-width: 500px;min-width:350px; display: block; left: 30%; top: 25%;visibility:hidden">
+			<div class="topRight">
+				<div class="topLeft">
+					<img id="inlineEditDialogX" onmouseover="this.className='dialogCloseOn'" onmouseout="this.className='dialogClose'" onclick="closeCommentPop()" class="dialogClose" src="/s.gif" />
+					<h2 id="inlineEditDialogTitle">Approval/Reject Approval Request</h2>
+				</div>
+			</div>
+			<div class="middle">
+				<div class="innerContent" id="inlineEditDialogContent">
+					<div class="activeField">
+						<div class="inlineEditCompoundDiv" style="text-align:left">
+							<apex:pageBlock >
+								<apex:pageBlockSection columns="1">
+									<apex:inputTextarea value="{!Comments}" styleClass="changeBoxComment" style="width: 340px; height: 120px;"/>
+								</apex:pageBlockSection>   
+							</apex:pageBlock>
+						</div>
+					</div>
+					<div id="inlineEditDialog_buttons" class="buttons">
+						<apex:commandButton action="{!approveChangeBox}" value="Approve"/>
+						<apex:commandButton action="{!rejectChangeBox}" value="Reject"/>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="overlayBackground" id="background" style="width:3289px; height:1293px; display:none; position:fixed"></div>
+		<script type="text/javascript">
+			$(function(){
+				$('div[class="required"]').find('select').remove();
+				$('div[class="required"]').find(':input:not(":hidden")').addClass('required').removeAttr('title');
+				
+				$('div[class*="approverInput"]').find('select').remove();
+				$('div[class*="approverInput"]').find(':input:not(":hidden")').addClass('approverInput').addClass('checkApprover').removeAttr('title');
+				$('div[class*="approverInput"]').removeAttr("class");
+				
+				$(".useApprovalProcess").change(function(){
+					if ($(this).val() != 'Yes') 
+					{
+						$(".approverInput").val('');
+					}
+				});
 
-            function confirmDelete()
-            {
-                return confirm('The record will be deleted. Continue?');
-            }
-            
-            function showPop(str)
-            {
-               document.getElementById("inlineEditDialog1").style.visibility = "visible";
-               document.getElementById("background").style.display = "block";
-            }
-            
-            function closePop()
-            {
-               document.getElementById("inlineEditDialog1").style.visibility = "hidden";
-               document.getElementById("background").style.display = "none";
-            }
-            
-            function showCommentPop(str, comments)
-            {
-                $('.changeBoxComment').val(comments);
-                document.getElementById("inlineEditDialog").style.visibility = "visible";
-                document.getElementById("background").style.display = "block";
-                document.getElementById("page:theForm:changeBoxHiddenId").value = str;
-            }
+				$.validator.addMethod('checkApprover', function(value, element){
+					return !($(".useApprovalProcess").val() == 'Yes' && value == '');
+				}, "Approver is required when you are using approval process.");
+				
+			});
+			
+			function edit()
+			{
+				blockScreen();
+				editFun();
+			}
 
-            function closeCommentPop()
-            {
-               document.getElementById("inlineEditDialog").style.visibility = "hidden";
-               document.getElementById("background").style.display = "none";
-            }
+			function cancelUpdate()
+			{
+				blockScreen();
+				cancelUpdateFun();
+			}
+		
+			function submitConfiguration()
+			{   
+				if ($(".theForm").valid()) {
+					var relatedObjects = '';
+					var catchAllName = '{!JSENCODE(TempConfig.Catch_All_Territory_Name__c)}'
+					var includeContacts = $('.includeContacts').attr("checked") == 'checked' ? 'true' : 'false';
+					var includeOpenActivities = $('.includeOpenActivities').attr("checked") == 'checked' ? 'true' : 'false';
+					var includeOpenOpps = $('.includeOpenOpps').attr('checked') == 'checked' ? 'true' : 'false';
+					var tempIncludeContacts = '{!TempConfig.Include_Contacts__c}';
+					var tempIncludeOpenOpps = '{!TempConfig.Include_Open_Opps__c}';
+					var tempIncludeOpenActivities = '{!TempConfig.Include_Open_Activities__c}';
+					if(includeContacts == 'true')
+					{
+						relatedObjects += ' Contacts,';
+					}
+					if(includeOpenActivities == 'true')
+					{
+						relatedObjects += ' Tasks, Events,';
+					}
+					if(includeOpenOpps == 'true')
+					{
+						relatedObjects += ' Open Opportunties,';
+					}
+				   
+					if(relatedObjects.length > 0)
+					{
+						relatedObjects = relatedObjects.substring(0, relatedObjects.length - 1);
+					}
+					var str = '';
+					if(includeContacts  != tempIncludeContacts || includeOpenActivities  != tempIncludeOpenActivities || includeOpenOpps != tempIncludeOpenOpps || catchAllName == '')
+					{
+						if(!(includeContacts == 'true' && includeOpenActivities == 'true' && includeOpenOpps == 'true'))
+						{
+							str = 'Starting with the next territory change, only Accounts and' + relatedObjects + ' will be assigned to the Territory Owner.'
+							if(includeContacts != 'true' && includeOpenOpps != 'true' && includeOpenOpps != 'true')
+							{
+								str = 'Starting with the next territory change, only Accounts will be assigned to the Territory Owner.';
+							}    
+						}
+					}
+					if(str != '')
+					{
+						if(confirm(str))
+						{
+							blockScreen();
+							submitConfigurationFun();
+						}
+					}
+					else
+					{
+						blockScreen();
+						submitConfigurationFun();
+					}
+					  
+				};    
+			}
+	 
+			function confirmCancel()
+			{
+				return confirm('The record will be canceled. Continue?');
+			}
 
-            function blockScreen()
-            {
-                $.blockUI({ message: '<img src=\'/img/loading.gif\' style=\'margin-right:10px;\' id=\'statusImg\'/>' + 'Waiting...', css: { border: '3px solid #CFEEF8', padding:'10px' } });            
-            }
-        </script>
-    </apex:form>      
+			function confirmDelete()
+			{
+				return confirm('The record will be deleted. Continue?');
+			}
+			
+			function confirmUpdate() {
+				return confirm('Clicking OK will start a mapping update on your organizations accounts. Each will be given a Latitude/Longitude value which will allow it to be mapped.');
+			}
+			
+			function showPop(str)
+			{
+			   document.getElementById("inlineEditDialog1").style.visibility = "visible";
+			   document.getElementById("background").style.display = "block";
+			}
+			
+			function closePop()
+			{
+			   document.getElementById("inlineEditDialog1").style.visibility = "hidden";
+			   document.getElementById("background").style.display = "none";
+			}
+			
+			function showCommentPop(str, comments)
+			{
+				$('.changeBoxComment').val(comments);
+				document.getElementById("inlineEditDialog").style.visibility = "visible";
+				document.getElementById("background").style.display = "block";
+				document.getElementById("page:theForm:changeBoxHiddenId").value = str;
+			}
+
+			function closeCommentPop()
+			{
+			   document.getElementById("inlineEditDialog").style.visibility = "hidden";
+			   document.getElementById("background").style.display = "none";
+			}
+
+			function blockScreen()
+			{
+				$.blockUI({ message: '<img src=\'/img/loading.gif\' style=\'margin-right:10px;\' id=\'statusImg\'/>' + 'Waiting...', css: { border: '3px solid #CFEEF8', padding:'10px' } });            
+			}
+		</script>
+	</apex:form>      
 </apex:page>

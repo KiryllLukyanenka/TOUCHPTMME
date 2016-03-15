@@ -1793,6 +1793,7 @@ public class TM_TerritoryManagementControllerNew
         }
         catch(Exception ex)
         {
+
         }
     }
 
@@ -2353,5 +2354,9 @@ public class TM_TerritoryManagementControllerNew
                 return input;
         }
         return '';
+    }
+
+    public void addColor() {
+        
     }
 }
